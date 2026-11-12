@@ -1,14 +1,28 @@
 """
-Telegram Notifier Module - Sends executive morning briefs to Telegram channel or direct chat
+Telegram Notifier Module - Compact Executive Morning Fast-Bite (Guaranteed Safe Length)
 """
 import os
 import json
+import html
 import urllib.request
 import urllib.parse
 from typing import Dict, Any
 
+# Telegram API hard limit is 4,096 chars; we enforce a strict conservative limit of 3,500 chars
+TELEGRAM_MAX_CHARS = 3500
+
+def truncate_text(text: str, max_len: int) -> str:
+    """Trim string to max_len safely with ellipsis."""
+    text = (text or "").strip()
+    if len(text) <= max_len:
+        return text
+    return text[:max_len - 3] + "..."
+
 def send_telegram_briefing(payload: Dict[str, Any]) -> bool:
-    """Send formatted morning financial briefing to Telegram."""
+    """
+    Send an ultra-compact, punchy morning summary to Telegram.
+    Optimized for quick 15-second scanning on mobile with guaranteed safe length.
+    """
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
     
@@ -16,54 +30,78 @@ def send_telegram_briefing(payload: Dict[str, Any]) -> bool:
         print("[Notifier] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not provided. Skipping Telegram notification.")
         return False
         
-    date_str = payload.get("date_formatted", payload.get("date", "วันนี้"))
-    time_str = payload.get("time", "08:00 น.")
+    date_str = html.escape(payload.get("date_formatted", payload.get("date", "วันนี้")))
+    time_str = html.escape(payload.get("time", "08:00 น."))
     
-    # 1. Format Snapshot
+    # 1. Format Snapshot (Pairing 2 items per line for ultra-compact vertical space)
+    items = payload.get("snapshot_items", [])
     snapshot_lines = []
-    for item in payload.get("snapshot_items", []):
-        sym = item.get("name", item.get("symbol", ""))
-        price = item.get("price_display", "")
-        chg = item.get("change_display", "")
-        status = item.get("status", "")
-        snapshot_lines.append(f"• <b>{sym}</b>: <code>{price}</code> ({status} {chg})")
+    
+    # Custom compact mapper
+    for it in items:
+        name = it.get("name", it.get("symbol", ""))
+        price = it.get("price_display", "")
+        status = it.get("status", "")
+        pct = it.get("percent_change", 0.0)
+        sign = "+" if pct > 0 else ""
+        compact_chg = f"{sign}{pct:.2f}%" if pct != 0 else "0.00%"
+        
+        # Shorten names for cleaner mobile display
+        short_name = (
+            "SET" if "SET" in name else
+            ("S&P500" if "S&P" in name else
+            ("US 10Y" if "10Y" in name else
+            ("WTI Oil" if "Oil" in name else
+            ("Gold" if "Gold" in name else
+            ("USD/THB" if "THB" in name else name)))))
+        )
+        snapshot_lines.append(f"• <b>{short_name}:</b> <code>{price}</code> ({status} {compact_chg})")
+        
     snapshot_text = "\n".join(snapshot_lines)
     
-    # 2. Format Top Stories
+    # 2. Format Top 3 Headlines (Concise & punchy, no long summaries)
     story_lines = []
-    for idx, story in enumerate(payload.get("main_stories", [])[:3], 1):
-        title = story.get("title", "")
-        takeaway = story.get("takeaway", "")
-        source = story.get("source_name", "ข่าวกรอง")
-        url = story.get("source_url", "https://nutcodelaw.github.io/market-sherlock/")
-        story_lines.append(
-            f"<b>{idx}. {title}</b>\n"
-            f"🎯 <i>Takeaway: {takeaway}</i>\n"
-            f"🔗 <a href='{url}'>{source}</a>"
-        )
+    emojis = ["1️⃣", "2️⃣", "3️⃣"]
+    for idx, story in enumerate(payload.get("main_stories", [])[:3]):
+        icon = emojis[idx] if idx < len(emojis) else f"{idx+1}."
+        title = html.escape(truncate_text(story.get("title", ""), 110))
+        takeaway = html.escape(truncate_text(story.get("takeaway", ""), 95))
+        
+        story_lines.append(f"{icon} <b>{title}</b>\n   ↳ <i>{takeaway}</i>")
+        
     stories_text = "\n\n".join(story_lines)
     
-    # 3. Strategy Compass
-    beneficiaries = ", ".join(payload.get("beneficiaries", [])[:2])
-    risks = ", ".join(payload.get("risks", [])[:2])
-    strategy = payload.get("strategies", ["เน้นถือเงินสดและหุ้นปันผล"])[0] if payload.get("strategies") else "บริหารความเสี่ยงเชิงรุก"
+    # 3. Compact Strategy Compass
+    raw_b = payload.get("beneficiaries", [])
+    raw_r = payload.get("risks", [])
+    raw_s = payload.get("strategies", [])
+    
+    beneficiaries = html.escape(truncate_text(", ".join(raw_b[:2]), 85)) if raw_b else "-"
+    risks = html.escape(truncate_text(", ".join(raw_r[:2]), 85)) if raw_r else "-"
+    strategy = html.escape(truncate_text(raw_s[0], 110)) if raw_s else "เน้นบริหารความเสี่ยงเชิงรุก"
 
+    # Assemble compact message
     message = (
-        f"🕵️‍♂️ <b>MarketSherlock (8.00 น.)</b>\n"
-        f"📅 ประจำวันที่ {date_str} • {time_str}\n\n"
+        f"🕵️‍♂️ <b>MarketSherlock (08:00 น.)</b>\n"
+        f"📅 <i>{date_str} • {time_str}</i>\n\n"
         f"📊 <b>Market Snapshot:</b>\n"
         f"{snapshot_text}\n\n"
-        f"🔍 <b>3 ข่าวหลักเจาะลึก:</b>\n"
+        f"🔍 <b>3 ประเด็นสำคัญเช้านี้:</b>\n"
         f"{stories_text}\n\n"
         f"🧭 <b>กลยุทธ์พอร์ตโฟลิโอ:</b>\n"
-        f"🟢 <b>ได้ประโยชน์:</b> {beneficiaries}\n"
-        f"🔴 <b>ต้องระวัง:</b> {risks}\n"
+        f"🟢 <b>บวก:</b> {beneficiaries}\n"
+        f"🔴 <b>ระวัง:</b> {risks}\n"
         f"💡 <b>กลยุทธ์:</b> {strategy}\n\n"
-        f"🌐 <b>อ่านรายงานฉบับเต็มพร้อมกราฟ:</b>\n"
-        f"👉 <a href='https://nutcodelaw.github.io/market-sherlock/'>https://nutcodelaw.github.io/market-sherlock/</a>"
+        f"👉 <b>เปิดอ่านรายงานฉบับเต็ม + ชาร์ตบทวิเคราะห์:</b>\n"
+        f"🔗 <a href='https://nutcodelaw.github.io/market-sherlock/'>https://nutcodelaw.github.io/market-sherlock/</a>"
     )
     
-    # Send via Telegram API
+    # Enforce safe character limit guard
+    if len(message) > TELEGRAM_MAX_CHARS:
+        message = message[:TELEGRAM_MAX_CHARS - 100] + "\n\n...(อ่านต่อฉบับเต็มบนเว็บ)"
+        
+    print(f"[Notifier] Message length: {len(message)} / 4096 characters (Safe & Compact)")
+    
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     post_data = {
         "chat_id": chat_id,
@@ -81,11 +119,11 @@ def send_telegram_briefing(payload: Dict[str, Any]) -> bool:
         with urllib.request.urlopen(req, timeout=10) as resp:
             res_json = json.loads(resp.read().decode("utf-8"))
             if res_json.get("ok"):
-                print("[Notifier] 🚀 สรุปข่าวถูกส่งเข้า Telegram เรียบร้อยแล้ว!")
+                print("[Notifier] 🚀 สรุปข่าวแบบ Compact ถูกส่งเข้า Telegram เรียบร้อยแล้ว!")
                 return True
             else:
-                print(f"[Notifier] ❌ Telegram API returned error: {res_json}")
+                print(f"[Notifier] ❌ Telegram API error: {res_json}")
                 return False
     except Exception as e:
-        print(f"[Notifier] ❌ ไม่สามารถส่งข้อความเข้า Telegram ได้: {e}")
+        print(f"[Notifier] ❌ ส่งเข้า Telegram ไม่สำเร็จ: {e}")
         return False
