@@ -10,6 +10,7 @@ from src.news_curator import get_curated_raw_news
 from src.state_manager import get_recent_history_context, append_daily_topics
 from src.ai_investigator import run_investigation
 from src.reporter import generate_markdown_report, save_all_reports
+from src.notifier import send_telegram_briefing
 
 def main():
     parser = argparse.ArgumentParser(description="MarketSherlock Morning Intelligence Engine")
@@ -83,6 +84,9 @@ def main():
             for s in analysis_data.get("main_stories", [])
         ]
         append_daily_topics(iso_date, topics_to_save)
+        
+        # Send Telegram notification if configured
+        send_telegram_briefing(payload)
         
         print("\n🎉 จัดทำรายงานเสร็จสมบูรณ์เรียบร้อยแล้ว!")
         print("📁 ไฟล์ที่สร้าง/อัปเดต:")
