@@ -15,17 +15,17 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
     time_str = now.strftime("%H:%M น.")
     
     lines = [
-        f"# 🕵️‍♂️ สรุปข่าวเศรษฐกิจทั่วโลก (8.00 น.) — {thai_date}",
-        f"*อัปเดตอัตโนมัติโดย MarketSherlock Financial Cockpit • เวลา {time_str} (Asia/Bangkok)*\n",
+        f"# 🕵️‍♂️ MarketSherlock Weekly Cockpit — ยุทธศาสตร์การลงทุนรายสัปดาห์ ({thai_date})",
+        f"*วิเคราะห์ภาพใหญ่และแท่งเทียน Timeframe Week • อัปเดตทุกเช้าวันเปิดตลาดสัปดาห์ใหม่ เวลา {time_str}*\n",
         "---",
         "",
-        "## 📊 Market Snapshot (ภาพรวมตัวเลขตลาดสำคัญ)",
+        "## 📊 ผลตอบแทนรอบสัปดาห์ (1W Market Performance & Weekly Range)",
         "",
         data.get("snapshot_markdown", ""),
         "",
         "---",
         "",
-        "## 🔍 ข่าวหลักและการวิเคราะห์เชิงลึก (Main Stories)",
+        "## 🔍 3 มหาประเด็นชี้ขาดรอบสัปดาห์ (Weekly Major Themes)",
         ""
     ]
     
@@ -914,14 +914,14 @@ def build_prerendered_html(data: Dict[str, Any], raw_markdown: str) -> str:
             <div class="brand">
                 <div class="brand-icon">🕵️‍♂️</div>
                 <div>
-                    <h1 class="brand-title">MarketSherlock Cockpit</h1>
-                    <div class="brand-sub">สรุปข่าวสืบสวนและพลวัตการลงทุนรอบโลก (08:00 น.)</div>
+                    <h1 class="brand-title">MarketSherlock Weekly Cockpit</h1>
+                    <div class="brand-sub">ยุทธศาสตร์การลงทุนและวิเคราะห์แท่งเทียนรอบสัปดาห์ (Timeframe Week)</div>
                 </div>
             </div>
             <div class="header-meta">
                 <div class="time-badge">
                     <span class="status-dot"></span>
-                    <span>{date_display} ({time_display})</span>
+                    <span>สัปดาห์ {html.escape(data.get("week_id", ""))} • {date_display}</span>
                 </div>
             </div>
         </header>
@@ -930,7 +930,7 @@ def build_prerendered_html(data: Dict[str, Any], raw_markdown: str) -> str:
         <div class="controls-bar">
             <div class="audio-player-box">
                 <button class="audio-btn" id="play-voice-btn" onclick="playVoiceSummary()">
-                    <span>🔊 ฟังเสียงสรุป 60 วินาที</span>
+                    <span>🔊 ฟังเสียงวิเคราะห์สัปดาห์นี้ 60 วินาที</span>
                 </button>
                 <span class="audio-status" id="audio-status-text">พร้อมบรรยาย</span>
             </div>

@@ -1,11 +1,12 @@
 """
-State Manager - Prevents duplicate news and tracks continuous issues across days
+State Manager - Supports Weekly reporting cycles and automatic holiday rollover
 """
 import json
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 from datetime import datetime, timedelta
 from src.config import HISTORY_FILE
+from src.utils import get_now_bangkok
 
 def load_history() -> List[Dict[str, Any]]:
     """Load history records from history.json."""
@@ -19,52 +20,53 @@ def load_history() -> List[Dict[str, Any]]:
         return []
 
 def save_history(records: List[Dict[str, Any]]) -> None:
-    """Save history records to history.json (keeps up to 14 days)."""
+    """Save history records to history.json."""
     HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(records[-30:], f, ensure_ascii=False, indent=2)
 
-def append_daily_topics(date_str: str, topics: List[Dict[str, Any]]) -> None:
-    """Append newly analyzed topics for today's date."""
+def get_current_week_identifier(dt: datetime = None) -> str:
+    """Return Year-Week string e.g. '2026-W46'."""
+    if dt is None:
+        dt = get_now_bangkok()
+    year, week_num, _ = dt.isocalendar()
+    return f"{year}-W{week_num:02d}"
+
+def is_current_week_already_reported() -> bool:
+    """Check if a weekly report for this calendar week has already been generated."""
+    current_week = get_current_week_identifier()
     history = load_history()
-    # Remove existing entry for the same date if re-running
-    history = [h for h in history if h.get("date") != date_str]
+    for entry in history:
+        if entry.get("week_id") == current_week:
+            return True
+    return False
+
+def append_weekly_topics(week_id: str, date_str: str, topics: List[Dict[str, Any]]) -> None:
+    """Record this week's completed report."""
+    history = load_history()
+    history = [h for h in history if h.get("week_id") != week_id]
     history.append({
+        "week_id": week_id,
         "date": date_str,
         "topics": topics,
         "updated_at": datetime.now().isoformat()
     })
     save_history(history)
 
-def get_recent_history_context(days: int = 7) -> str:
-    """
-    Format recent history into a compact context string for the AI prompt
-    to prevent repetitive reporting and encourage continuity.
-    """
+def get_recent_history_context(days: int = 14) -> str:
+    """Format past weekly topics to maintain analytical continuity."""
     history = load_history()
     if not history:
-        return "ไม่มีประวัติการรายงานข่าวก่อนหน้า (รายงานเป็นวันแรก)"
+        return "ไม่มีประวัติการรายงานรายสัปดาห์ก่อนหน้า (รายงานสัปดาห์แรก)"
 
-    cutoff = datetime.now() - timedelta(days=days)
-    recent_entries = []
-    
-    for entry in history[-days:]:
+    entries = []
+    for entry in history[-4:]:
+        w_id = entry.get("week_id", "")
         d_str = entry.get("date", "")
         topic_list = entry.get("topics", [])
         if not topic_list:
             continue
-        items_summary = []
-        for t in topic_list:
-            title = t.get("title", "") if isinstance(t, dict) else str(t)
-            theme = t.get("theme", "") if isinstance(t, dict) else ""
-            items_summary.append(f"- {title} ({theme})" if theme else f"- {title}")
+        items_summary = [f"- {t.get('title', '')}" for t in topic_list if isinstance(t, dict)]
+        entries.append(f"สัปดาห์ {w_id} ({d_str}):\n" + "\n".join(items_summary))
         
-        recent_entries.append(f"วันที่ {d_str}:\n" + "\n".join(items_summary))
-    
-    if not recent_entries:
-        return "ไม่มีประวัติการรายงานข่าวในช่วง 7 วันที่ผ่านมา"
-        
-    return "\n\n".join(recent_entries)
-
-if __name__ == "__main__":
-    print(get_recent_history_context())
+    return "\n\n".join(entries) if entries else "ไม่มีประวัติการรายงานในช่วง 14 วันที่ผ่านมา"

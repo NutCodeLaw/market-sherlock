@@ -1,15 +1,15 @@
-name: 🕵️‍♂️ MarketSherlock Daily Intelligence Dispatch
+name: 🕵️‍♂️ MarketSherlock Weekly Intelligence Cockpit
 
 on:
   schedule:
-    # 01:00 UTC Daily = 08:00 AM Bangkok Time (UTC+7) - Synchronized Daily Dispatch
-    - cron: '0 1 * * *'
+    # 00:50 UTC = 07:50 AM Thailand Time (Runs Mon-Fri, executes on Monday or next business day if holiday)
+    - cron: '50 0 * * 1-5'
   workflow_dispatch:
     inputs:
-      dry_run:
-        description: 'Run in dry-run mode (no git push)'
+      force:
+        description: 'Force re-run even if already published this week'
         required: false
-        default: 'false'
+        default: false
         type: boolean
 
 permissions:
@@ -39,17 +39,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: 🕵️‍♂️ Run MarketSherlock Autonomous Investigation
+      - name: 🕵️‍♂️ Run MarketSherlock Weekly Intelligence
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TZ: 'Asia/Bangkok'
         run: |
-          python main.py
+          if [ "${{ inputs.force }}" = "true" ]; then
+            python main.py --force
+          else
+            python main.py
+          fi
 
       - name: 📤 Commit and push changes
-        if: ${{ inputs.dry_run != 'true' }}
         run: |
           git config --global user.name "MarketSherlock-Bot"
           git config --global user.email "bot@marketsherlock.internal"
@@ -57,9 +58,9 @@ jobs:
           
           # Only commit if there are changes
           if git diff --staged --quiet; then
-            echo "No changes to commit."
+            echo "No changes to commit (already up to date or skipped)."
           else
             TODAY=$(date +'%Y-%m-%d')
-            git commit -m "feat(briefing): 📰 MarketSherlock Dispatch for ${TODAY} [skip ci]"
+            git commit -m "feat(weekly): 📊 MarketSherlock Weekly Dispatch for ${TODAY} [skip ci]"
             git push origin main
           fi
