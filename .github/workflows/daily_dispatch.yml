@@ -2,8 +2,8 @@ name: 🕵️‍♂️ MarketSherlock Daily Intelligence Dispatch
 
 on:
   schedule:
-    # 00:50 UTC = 07:50 AM Thailand time (ready for 08:00 AM reading)
-    - cron: '50 0 * * 1-5'
+    # 01:00 UTC Daily = 08:00 AM Bangkok Time (UTC+7) - Synchronized Daily Dispatch
+    - cron: '0 1 * * *'
   workflow_dispatch:
     inputs:
       dry_run:
