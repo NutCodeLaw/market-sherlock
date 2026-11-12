@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🕵️‍♂️ MarketSherlock — สรุปข่าวเศรษฐกิจและพลวัตการลงทุน</title>
+    <title>🕵️‍♂️ MarketSherlock — Interactive Financial Cockpit</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-base: #090d16;
@@ -24,6 +24,28 @@
             --font-mono: 'JetBrains Mono', monospace;
         }
 
+        [data-theme="bloomberg"] {
+            --bg-base: #0a0a0a;
+            --bg-surface: #141414;
+            --bg-card: #1c1c1c;
+            --border: #ff9900;
+            --text-main: #ff9900;
+            --text-muted: #d4a359;
+            --accent-gold: #ffaa00;
+            --accent-cyan: #00ddff;
+        }
+
+        [data-theme="slate"] {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-card: #334155;
+            --border: #475569;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --accent-gold: #fbbf24;
+            --accent-cyan: #38bdf8;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -37,13 +59,15 @@
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
             padding: 24px 16px;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .container {
-            max-width: 1040px;
+            max-width: 1100px;
             margin: 0 auto;
         }
 
+        /* Header Cockpit */
         header {
             display: flex;
             flex-wrap: wrap;
@@ -51,7 +75,7 @@
             align-items: center;
             border-bottom: 1px solid var(--border);
             padding-bottom: 20px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             gap: 16px;
         }
 
@@ -86,7 +110,8 @@
         .header-meta {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .time-badge {
@@ -110,186 +135,482 @@
             box-shadow: 0 0 10px var(--accent-green);
         }
 
+        /* Audio & Controls Bar */
+        .controls-bar {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 12px;
+        }
+
+        .audio-player-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .audio-btn {
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            color: #ffffff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.2s;
+        }
+
+        .audio-btn:hover { opacity: 0.9; }
+
+        .audio-status {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .theme-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn {
+            background: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+        /* Module 1: Split Cockpit (Sentiment Gauge + Finviz Heatmap) */
+        .cockpit-top-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 860px) {
+            .cockpit-top-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sentiment-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .gauge-svg {
+            width: 220px;
+            height: 120px;
+            overflow: visible;
+        }
+
+        .gauge-needle {
+            transform-origin: 100px 95px;
+            transition: transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .sentiment-val {
+            font-size: 2rem;
+            font-weight: 800;
+            font-family: var(--font-mono);
+            margin-top: 4px;
+        }
+
+        .sentiment-tag {
+            display: inline-block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            margin-bottom: 6px;
+        }
+
+        .sentiment-desc {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Finviz Heatmap Tiles */
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .heatmap-tile {
+            border: 1px solid;
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .heatmap-tile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .heatmap-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 6px;
+        }
+
+        .heatmap-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .heatmap-sym {
+            font-size: 0.72rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+        }
+
+        .heatmap-price {
+            font-size: 1.25rem;
+            font-weight: 800;
+            font-family: var(--font-mono);
+            margin-bottom: 4px;
+        }
+
+        .heatmap-chg {
+            font-size: 0.82rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+
+        /* Module 2: Bento Grid Crime Files */
         .section-header {
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin: 32px 0 16px 0;
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin: 28px 0 16px 0;
             color: #ffffff;
             border-left: 4px solid var(--accent-gold);
             padding-left: 12px;
         }
 
-        .snapshot-grid {
+        .bento-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
             margin-bottom: 24px;
         }
 
-        .ticker-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 14px;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-
-        .ticker-card:hover {
-            transform: translateY(-2px);
-            border-color: #3b82f6;
-        }
-
-        .ticker-name {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-        }
-
-        .ticker-price {
-            font-size: 1.25rem;
-            font-weight: 700;
-            font-family: var(--font-mono);
-            margin-bottom: 4px;
-        }
-
-        .ticker-change {
-            font-size: 0.8rem;
-            font-family: var(--font-mono);
-            font-weight: 600;
-        }
-
-        .up { color: var(--accent-green); }
-        .down { color: var(--accent-red); }
-        .neutral { color: var(--text-muted); }
-
-        .story-card {
+        .bento-card {
             background: var(--bg-surface);
             border: 1px solid var(--border);
             border-radius: 14px;
             padding: 20px;
-            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             position: relative;
             overflow: hidden;
+            transition: border-color 0.2s;
         }
 
-        .story-card::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: linear-gradient(to bottom, #3b82f6, #06b6d4);
+        .bento-card:hover {
+            border-color: #3b82f6;
         }
 
-        .story-title {
-            font-size: 1.15rem;
-            font-weight: 700;
+        .bento-badge-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
-            color: #f8fafc;
         }
 
-        .story-body {
-            font-size: 0.95rem;
-            color: #cbd5e1;
+        .bento-tag {
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .bento-threat {
+            font-size: 0.75rem;
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        .bento-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #f8fafc;
+            line-height: 1.4;
+        }
+
+        .tldr-pill {
+            background: rgba(15, 23, 42, 0.8);
+            border-left: 3px solid var(--accent-cyan);
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 0.88rem;
+            color: #e2e8f0;
             margin-bottom: 14px;
+            line-height: 1.45;
+        }
+
+        .tldr-label {
+            font-weight: 800;
+            color: var(--accent-cyan);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+        }
+
+        .bento-deep-dive {
+            display: none;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 12px;
+        }
+
+        .bento-deep-dive.open {
+            display: block;
+        }
+
+        .bento-summary {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+            line-height: 1.5;
         }
 
         .takeaway-box {
-            background: rgba(15, 23, 42, 0.7);
-            border: 1px solid var(--border);
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.2);
             border-radius: 8px;
-            padding: 12px 14px;
+            padding: 10px 12px;
             margin-bottom: 12px;
         }
 
         .takeaway-title {
-            font-size: 0.82rem;
-            font-weight: 700;
+            font-size: 0.78rem;
+            font-weight: 800;
             color: var(--accent-gold);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
             margin-bottom: 4px;
         }
 
         .takeaway-content {
-            font-size: 0.9rem;
-            color: #e2e8f0;
+            font-size: 0.86rem;
+            color: #f1f5f9;
         }
 
-        .story-footer {
+        .bento-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.82rem;
             gap: 8px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .source-pill {
             background: rgba(255, 255, 255, 0.06);
             color: #93c5fd;
             text-decoration: none;
-            padding: 4px 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .source-pill:hover { text-decoration: underline; }
+
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
             border-radius: 6px;
             font-size: 0.78rem;
-            display: inline-flex;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 4px;
+            width: 100%;
             transition: background 0.2s;
         }
 
-        .source-pill:hover {
-            background: rgba(255, 255, 255, 0.12);
-            text-decoration: underline;
+        .toggle-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+        /* Module 3: Bull vs Bear Tug-of-War */
+        .tug-war-box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 24px;
         }
 
-        .briefs-grid {
+        .tug-war-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .bull-pct-text { color: var(--accent-green); font-family: var(--font-mono); font-size: 1.1rem; }
+        .bear-pct-text { color: var(--accent-red); font-family: var(--font-mono); font-size: 1.1rem; }
+
+        .tug-war-bar {
+            height: 14px;
+            border-radius: 9999px;
+            display: flex;
+            overflow: hidden;
+            margin-bottom: 14px;
+            background: #1e293b;
+        }
+
+        .tug-bull-fill { background: linear-gradient(90deg, #10b981, #34d399); transition: width 1s; }
+        .tug-bear-fill { background: linear-gradient(90deg, #f87171, #ef4444); transition: width 1s; }
+
+        .tug-war-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .army-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.85rem;
+        }
+
+        .army-title {
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .army-list {
+            list-style: none;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        /* Module 4: Asset Allocation Bar */
+        .alloc-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .alloc-bar {
+            height: 20px;
+            border-radius: 9999px;
+            display: flex;
+            overflow: hidden;
+            margin: 12px 0 14px 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .alloc-legend {
+            display: flex;
+            flex-wrap: wrap;
             gap: 14px;
+            font-size: 0.85rem;
+        }
+
+        .alloc-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .alloc-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Briefs & Watchlist */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .bottom-grid, .tug-war-grid { grid-template-columns: 1fr; }
         }
 
         .brief-item {
             background: var(--bg-surface);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
         }
 
         .brief-tag {
-            display: inline-block;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 700;
             font-family: var(--font-mono);
             background: rgba(245, 158, 11, 0.12);
             color: var(--accent-gold);
-            padding: 2px 8px;
+            padding: 2px 6px;
             border-radius: 4px;
-            margin-bottom: 8px;
         }
 
         .brief-headline {
-            font-size: 0.95rem;
-            font-weight: 600;
+            font-size: 0.9rem;
+            font-weight: 700;
             color: #f1f5f9;
-            margin-bottom: 6px;
+            margin: 4px 0;
         }
 
         .brief-text {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--text-muted);
-        }
-
-        .strategy-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 14px;
         }
 
         .strategy-box {
@@ -299,37 +620,15 @@
             padding: 18px;
         }
 
-        .box-heading {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .box-green { border-top: 3px solid var(--accent-green); }
-        .box-red { border-top: 3px solid var(--accent-red); }
-        .box-blue { border-top: 3px solid var(--accent-cyan); }
-
         .strategy-list {
             list-style: none;
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             color: #cbd5e1;
         }
 
         .strategy-list li {
-            position: relative;
-            padding-left: 18px;
             margin-bottom: 8px;
-        }
-
-        .strategy-list li::before {
-            content: "•";
-            position: absolute;
-            left: 4px;
-            color: var(--accent-gold);
-            font-weight: bold;
+            line-height: 1.45;
         }
 
         footer {
@@ -340,198 +639,305 @@
             color: var(--text-muted);
             font-size: 0.82rem;
         }
-
-        .actions-bar {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-bottom: 16px;
-        }
-
-        .btn {
-            background: var(--bg-surface);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 0.82rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: background 0.2s;
-        }
-
-        .btn:hover {
-            background: var(--bg-card);
-            border-color: #64748b;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Top Nav & Brand -->
+        <!-- Header -->
         <header>
             <div class="brand">
                 <div class="brand-icon">🕵️‍♂️</div>
                 <div>
-                    <h1 class="brand-title">MarketSherlock</h1>
-                    <div class="brand-sub">สรุปข่าวเศรษฐกิจและพลวัตการลงทุนรอบโลก (08:00 น.)</div>
+                    <h1 class="brand-title">MarketSherlock Cockpit</h1>
+                    <div class="brand-sub">สรุปข่าวสืบสวนและพลวัตการลงทุนรอบโลก (08:00 น.)</div>
                 </div>
             </div>
             <div class="header-meta">
                 <div class="time-badge">
                     <span class="status-dot"></span>
-                    <span id="report-date">12 พฤศจิกายน 2569 (23:15 น.)</span>
+                    <span>12 พฤศจิกายน 2569 (23:43 น.)</span>
                 </div>
             </div>
         </header>
 
-        <div class="actions-bar">
-            <button class="btn" onclick="window.print()">🖨️ พิมพ์ / บันทึก PDF</button>
-            <button class="btn" onclick="copyMarkdown()">📋 คัดลอก Markdown</button>
-        </div>
-
-        <!-- 1. Market Snapshot -->
-        <div class="section-header">📊 Market Snapshot (ภาพรวมตัวเลขตลาดสำคัญ)</div>
-        <div class="snapshot-grid" id="snapshot-container">
-
-            <div class="ticker-card">
-                <div class="ticker-name">SET Index (^SET.BK)</div>
-                <div class="ticker-price">1,499.06</div>
-                <div class="ticker-change neutral">⚪ +0.00 (+0.00%)</div>
+        <!-- Controls & Audio Narration Bar -->
+        <div class="controls-bar">
+            <div class="audio-player-box">
+                <button class="audio-btn" id="play-voice-btn" onclick="playVoiceSummary()">
+                    <span>🔊 ฟังเสียงสรุป 60 วินาที</span>
+                </button>
+                <span class="audio-status" id="audio-status-text">พร้อมบรรยาย</span>
             </div>
-
-            <div class="ticker-card">
-                <div class="ticker-name">S&amp;P 500 (^GSPC)</div>
-                <div class="ticker-price">7,642.54</div>
-                <div class="ticker-change up">🟢 +23.16 (+0.30%)</div>
-            </div>
-
-            <div class="ticker-card">
-                <div class="ticker-name">US 10Y Yield (^TNX)</div>
-                <div class="ticker-price">5.07%</div>
-                <div class="ticker-change up">🟢 +0.07 (+1.44%)</div>
-            </div>
-
-            <div class="ticker-card">
-                <div class="ticker-name">Crude Oil (WTI) (CL=F)</div>
-                <div class="ticker-price">86.69</div>
-                <div class="ticker-change up">🟢 +0.16 (+0.18%)</div>
-            </div>
-
-            <div class="ticker-card">
-                <div class="ticker-name">Gold (Spot/Futures) (GC=F)</div>
-                <div class="ticker-price">3,875.40</div>
-                <div class="ticker-change down">🔴 -125.10 (-3.13%)</div>
-            </div>
-
-            <div class="ticker-card">
-                <div class="ticker-name">USD/THB (THB=X)</div>
-                <div class="ticker-price">33.87THB</div>
-                <div class="ticker-change up">🟢 +0.28 (+0.84%)</div>
+            <div class="theme-buttons">
+                <button class="btn" onclick="setTheme('dark')">🌙 Dark</button>
+                <button class="btn" onclick="setTheme('bloomberg')">🟡 Terminal</button>
+                <button class="btn" onclick="setTheme('slate')">☕ Slate</button>
+                <button class="btn" onclick="copyMarkdown()">📋 Copy MD</button>
             </div>
         </div>
 
-        <!-- 2. Main Stories -->
-        <div class="section-header">🔍 ข่าวหลักและการวิเคราะห์เชิงลึก (Investigative & Main Stories)</div>
-        <div id="main-stories-container">
-
-        <div class="story-card">
-            <h3 class="story-title">US 10Y Yield ทะยานแตะ 5.07% รับเงินเฟ้อตึงมือ ตลาดให้น้ำหนัก Fed ขึ้นดอกเบี้ยรอบ ธ.ค.</h3>
-            <div class="story-body">อัตราผลตอบแทนพันธบัตรรัฐบาลสหรัฐฯ อายุ 10 ปี ขยับขึ้นต่อเนื่องสู่ 5.07% ภายหลังรายงานดัชนีราคาผู้บริโภค (CPI) เดือนตุลาคมสะท้อนแรงกดดันราคาที่ยังกระจายตัวในวงกว้างมากกว่าหมวดพลังงาน ตัวเลขดังกล่าวส่งผลให้ตลาดปรับเพิ่มโอกาสที่ธนาคารกลางสหรัฐฯ (Fed) จะปรับขึ้นอัตราดอกเบี้ยนโยบายในการประชุมเดือนธันวาคม เพื่อสกัดแรงกดดันเงินเฟ้อที่ยังคงอยู่ แม้ดัชนี S&amp;P 500 จะทรงตัวบวกได้เล็กน้อย 0.30% แต่นักลงทุนในตลาดตราสารหนี้ยังคงระมัดระวังต่อระดับอัตราดอกเบี้ยนโยบายที่อาจทรงตัวสูงยาวนานขึ้น</div>
-            <div class="takeaway-box">
-                <div class="takeaway-title">🎯 Actionable Takeaways</div>
-                <div class="takeaway-content">กระจายความเสี่ยงในพอร์ตตราสารหนี้สู่พันธบัตรระยะสั้น (Short Duration) และเน้นหุ้นกลุ่มที่มีกระแสเงินสดแข็งแกร่ง (Free Cash Flow สูง) เพื่อลดผลกระทบจาก Bond Yield ที่อยู่ในระดับสูง</div>
+        <!-- 1. Market Sentiment Gauge + Finviz Heatmap Grid -->
+        <div class="cockpit-top-grid">
+            <!-- Sentiment Gauge -->
+            <div class="sentiment-card">
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">🧭 MARKET SENTIMENT</div>
+                <svg class="gauge-svg" viewBox="0 0 200 110">
+                    <!-- Gauge Arc -->
+                    <path d="M 20 95 A 80 80 0 0 1 180 95" fill="none" stroke="#243248" stroke-width="16" stroke-linecap="round"/>
+                    <!-- Color Sections -->
+                    <path d="M 20 95 A 80 80 0 0 1 65 38" fill="none" stroke="#ef4444" stroke-width="16" stroke-linecap="round"/>
+                    <path d="M 68 35 A 80 80 0 0 1 132 35" fill="none" stroke="#f59e0b" stroke-width="16"/>
+                    <path d="M 135 38 A 80 80 0 0 1 180 95" fill="none" stroke="#10b981" stroke-width="16" stroke-linecap="round"/>
+                    <!-- Needle -->
+                    <g class="gauge-needle" style="transform: rotate(-18.0deg);">
+                        <polygon points="98,95 102,95 100,24" fill="#ffffff"/>
+                        <circle cx="100" cy="95" r="7" fill="#ef4444"/>
+                    </g>
+                </svg>
+                <div class="sentiment-val" style="color: #ef4444;">40</div>
+                <div class="sentiment-tag" style="background: rgba(255,255,255,0.1); color: #ef4444;">Fear</div>
+                <div class="sentiment-desc">แรงกดดันจาก US 10Y Yield ที่พุ่งทะลุ 5.07% หลังตัวเลขเงินเฟ้อสหรัฐฯ ร้อนแรง หนุน Fed จ่อขึ้นดอกเบี้ยเดือน ธ.ค. ส่งผลให้ดอลลาร์แข็งค่า กดดันสินทรัพย์เสี่ยงและทองคำปรับฐานแรง</div>
             </div>
-            <div class="story-footer">
-                <span>🔄 ความต่อเนื่อง: <strong>พัฒนาการต่อเนื่องจากวานนี้ที่ US 10Y Yield ทะลุ 5.06% โดยเช้านี้ไต่ระดับขึ้นมาแตะ 5.07% ตามแรงหนุนจากคาดการณ์การดำเนินนโยบายการเงินที่เข้มงวดของ Fed</strong></span>
-                <a class="source-pill" href="https://news.google.com/rss/articles/CBMiekFVX3lxTFBTM0hlaW1Oc0FQRUY5YXRsYlgyQVZIMDhlUnpob3ZiZU9DbF9LdE5ocmRGaXNrXzhSU3BDVmhyalFqSXp0WU1WamlZcTAyWUR1U2FEN1h5N1hvNVR6a1ZpeVhVZFktVDRIYXdDSzh0UXRVRVc3RUZMdGZ3?oc=5" target="_blank" rel="noopener noreferrer">🔗 แหล่งข่าว: WSJ</a>
+
+            <!-- Heatmap Tiles -->
+            <div class="heatmap-grid">
+
+        <div class="heatmap-tile" style="background: rgba(100, 116, 139, 0.12); border-color: #475569;">
+            <div class="heatmap-header">
+                <span class="heatmap-name">SET Index</span>
+                <span class="heatmap-sym">^SET.BK</span>
+            </div>
+            <div class="heatmap-price">1,499.06</div>
+            <div class="heatmap-chg" style="color: #94a3b8;">⚪ +0.00 (+0.00%)</div>
+        </div>
+
+        <div class="heatmap-tile" style="background: rgba(16, 185, 129, 0.12); border-color: #059669;">
+            <div class="heatmap-header">
+                <span class="heatmap-name">S&amp;P 500</span>
+                <span class="heatmap-sym">^GSPC</span>
+            </div>
+            <div class="heatmap-price">7,625.42</div>
+            <div class="heatmap-chg" style="color: #10b981;">🟢 +6.04 (+0.08%)</div>
+        </div>
+
+        <div class="heatmap-tile" style="background: rgba(16, 185, 129, 0.25); border-color: #10b981;">
+            <div class="heatmap-header">
+                <span class="heatmap-name">US 10Y Yield</span>
+                <span class="heatmap-sym">^TNX</span>
+            </div>
+            <div class="heatmap-price">5.07%</div>
+            <div class="heatmap-chg" style="color: #34d399;">🟢 +0.08 (+1.52%)</div>
+        </div>
+
+        <div class="heatmap-tile" style="background: rgba(16, 185, 129, 0.12); border-color: #059669;">
+            <div class="heatmap-header">
+                <span class="heatmap-name">Crude Oil (WTI)</span>
+                <span class="heatmap-sym">CL=F</span>
+            </div>
+            <div class="heatmap-price">86.80</div>
+            <div class="heatmap-chg" style="color: #10b981;">🟢 +0.27 (+0.31%)</div>
+        </div>
+
+        <div class="heatmap-tile" style="background: rgba(239, 68, 68, 0.25); border-color: #ef4444;">
+            <div class="heatmap-header">
+                <span class="heatmap-name">Gold (Spot/Futures)</span>
+                <span class="heatmap-sym">GC=F</span>
+            </div>
+            <div class="heatmap-price">3,871.80</div>
+            <div class="heatmap-chg" style="color: #f87171;">🔴 -128.70 (-3.22%)</div>
+        </div>
+
+        <div class="heatmap-tile" style="background: rgba(16, 185, 129, 0.25); border-color: #10b981;">
+            <div class="heatmap-header">
+                <span class="heatmap-name">USD/THB</span>
+                <span class="heatmap-sym">THB=X</span>
+            </div>
+            <div class="heatmap-price">33.87THB</div>
+            <div class="heatmap-chg" style="color: #34d399;">🟢 +0.28 (+0.84%)</div>
+        </div>
             </div>
         </div>
 
-        <div class="story-card">
-            <h3 class="story-title">เจาะลึก 10 คลัสเตอร์เป้าหมาย &#x27;BOI to IPO&#x27; วางช่องทางพิเศษดึงทุนต่างชาติระดมทุนในไทย</h3>
-            <div class="story-body">ความคืบหน้าของโครงการร่วมระหว่างสำนักงานคณะกรรมการส่งเสริมการลงทุน (BOI), สำนักงาน ก.ล.ต. และตลาดหลักทรัพย์แห่งประเทศไทย (SET) ได้เริ่มกำหนดทิศทางเชิงปฏิบัติการ โดยมุ่งเป้าไปที่ 10 อุตสาหกรรมแห่งอนาคต (New Economy) อาทิ เทคโนโลยีขั้นสูงและพลังงานสะอาด ทั้งนี้ มีการพิจารณาจัดทำช่องทางพิเศษ (Special Track) เพื่อสนับสนุนให้บริษัทข้ามชาติที่ได้รับสิทธิประโยชน์และเข้ามาตั้งฐานการผลิตในไทยสามารถเข้าจดทะเบียนในตลาดทุนไทยได้โดยไม่จำกัดสัญชาติ เพื่อเพิ่มขนาดและสภาพคล่องให้ตลาดหุ้นไทยในระยะยาว</div>
-            <div class="takeaway-box">
-                <div class="takeaway-title">🎯 Actionable Takeaways</div>
-                <div class="takeaway-content">จับตาหุ้นกลุ่มที่ปรึกษาทางการเงิน (FA), วาณิชธนกิจ และกลุ่มนิคมอุตสาหกรรมที่จะได้ประโยชน์ทางอ้อมจากการขยายตัวของระบบนิเวศการลงทุน New Economy</div>
+        <!-- 2. Bento Grid Crime Files (3 Main Stories) -->
+        <div class="section-header">📂 3 แฟ้มคดีสืบสวนเด่น (Investigative Crime Files)</div>
+        <div class="bento-grid">
+
+        <div class="bento-card">
+            <div class="bento-badge-row">
+                <span class="bento-tag">📂 แฟ้มคดีที่ 1</span>
+                <span class="bento-threat">ความเร่งด่วน: ⭐⭐⭐⭐⭐</span>
             </div>
-            <div class="story-footer">
-                <span>🔄 ความต่อเนื่อง: <strong>พัฒนาการต่อเนื่องจากวานนี้ที่เริ่มวางกรอบความร่วมมือ 3 ฝ่าย วันนี้มีความชัดเจนเพิ่มเติมเรื่องการเจาะลึก 10 อุตสาหกรรมเป้าหมายและการเปิดช่องทางพิเศษรับบริษัทต่างชาติทุกสัญชาติ</strong></span>
-                <a class="source-pill" href="https://news.google.com/rss/articles/CBMiZkFVX3lxTE43cGY0aWNTNzdDRzluUE9yMVNyVWRiejJ6T1ZjbDJvZmdLWmtNMzRXX0hveHUyT3FoOTJ6UEZkVUxlVml0LXBVUkNhX1hGSWw2Ujhpem8ydjZkZVNocTd3QWxnaVJJZw?oc=5" target="_blank" rel="noopener noreferrer">🔗 แหล่งข่าว: Thunhoon</a>
+            <h3 class="bento-title">วิกฤตยีลด์ 5.07% สั่นสะเทือนวอลล์สตรีท: เงินเฟ้อสหรัฐฯ ร้อนฉ่า ดันเฟดจ่อขึ้นดอกเบี้ย ธ.ค.</h3>
+            
+            <!-- Quick TL;DR Box -->
+            <div class="tldr-pill">
+                <span class="tldr-label">⚡ TL;DR:</span> อัตราผลตอบแทนพันธบัตรรัฐบาลสหรัฐฯ อายุ 10 ปี ทะยานแตะ 5.07% หลังตัวเลขเงินเฟ้อสูงเกินคาด กดดันตลาดหุ้นทั่วโลกและเร่งการไหลออกของเงินทุน
+            </div>
+
+            <!-- Expandable Detailed Investigation -->
+            <div class="bento-deep-dive" id="crime-file-1">
+                <p class="bento-summary">แรงกดดันด้านราคาสินค้าที่กระจายตัวเป็นวงกว้างในสหรัฐฯ ตอกย้ำโอกาสที่ธนาคารกลางสหรัฐฯ (Fed) จะตัดสินใจปรับขึ้นอัตราดอกเบี้ยนโยบายอีกครั้งในการประชุมเดือนธันวาคม ส่งผลให้บอนด์ยีลด์ 10 ปี พุ่งแตะ 5.07% ในรอบ 19 เดือน และผลักดันค่าเงินดอลลาร์แข็งค่าอย่างรวดเร็ว</p>
+                <div class="takeaway-box">
+                    <div class="takeaway-title">🎯 Actionable Takeaways</div>
+                    <div class="takeaway-content">ลดสัดส่วนหุ้นเทคโนโลยีที่มี Valuation สูงและภาระหนี้แปรผัน เพิ่มการถือครองตราสารหนี้ระยะสั้นเพื่อล็อกผลตอบแทน Yield สูงโดยไม่เสี่ยง Duration Risk</div>
+                </div>
+                <div class="bento-meta">
+                    <span>🔄 ความต่อเนื่อง: <strong>พัฒนาการต่อเนื่องจากวานนี้ที่ US 10Y Yield แตะระดับ 5.06% โดยล่าสุดได้ขยับขึ้นทะลุ 5.07% หลังตลาดซึมซับรายงาน CPI ที่ยืดเยื้อ</strong></span>
+                    <a class="source-pill" href="https://news.google.com/rss/articles/CBMib0FVX3lxTE5kS2N1QmprS3IzX3ZuTHRrNlBkaERHTlNMTEdzMkk3bUR3eXo5cDcyMGpiSF9xUVpPQzZHaDBZN2NrbHdFVGpmWTZ1ZXAxMXBuOHlkdzNEcEdRQU44Rm14a3llS1VOUFhPaTByWThqaw?oc=5" target="_blank" rel="noopener noreferrer">🔗 แหล่งข่าว: CNBC</a>
+                </div>
+            </div>
+
+            <button class="toggle-btn" onclick="toggleDetails('crime-file-1', this)">
+                <span>🔎 เจาะลึกแฟ้มคดี</span> <span class="arrow-icon">▼</span>
+            </button>
+        </div>
+
+        <div class="bento-card">
+            <div class="bento-badge-row">
+                <span class="bento-tag">📂 แฟ้มคดีที่ 2</span>
+                <span class="bento-threat">ความเร่งด่วน: ⭐⭐⭐⭐</span>
+            </div>
+            <h3 class="bento-title">ทองคำถูกล้างพอร์ตดิ่งเหว -3.22% สู่ $3,871 บาทอ่อนค่าระนาว 33.87 รับดอลลาร์แกร่ง</h3>
+            
+            <!-- Quick TL;DR Box -->
+            <div class="tldr-pill">
+                <span class="tldr-label">⚡ TL;DR:</span> ราคาทองคำ Spot ร่วงหนักกว่า 128 ดอลลาร์ จากแรงกดดัน Real Yield สหรัฐฯ พุ่ง ฉุดค่าเงินบาทอ่อนค่าแตะ 33.87 THB
+            </div>
+
+            <!-- Expandable Detailed Investigation -->
+            <div class="bento-deep-dive" id="crime-file-2">
+                <p class="bento-summary">การแข็งค่าขึ้นอย่างรวดเร็วของเงินดอลลาร์สหรัฐฯ และการพุ่งขึ้นของอัตราผลตอบแทนพันธบัตรแท้จริง (Real Yield) จุดชนวนให้เกิดแรงขายทำกำไรทองคำครั้งใหญ่กว่า -3.22% ลงมาปิดที่ 3,871.80 ดอลลาร์ ขณะเดียวกันส่งผลทางอ้อมให้เงินบาทอ่อนค่าต่อเนื่องมาอยู่ที่ 33.87 บาทต่อดอลลาร์</p>
+                <div class="takeaway-box">
+                    <div class="takeaway-title">🎯 Actionable Takeaways</div>
+                    <div class="takeaway-content">ชะลอการเข้าซื้อเก็งกำไรทองคำระยะสั้น รอตั้งรับในโซนแนวรับสำคัญทางเทคนิค และใช้จังหวะบาทอ่อนเป็นโอกาสล็อกกำไรหุ้นกลุ่มส่งออก</div>
+                </div>
+                <div class="bento-meta">
+                    <span>🔄 ความต่อเนื่อง: <strong>พัฒนาการต่อเนื่องจากรอบการพักฐานสู่กรอบ $3,875 เมื่อวานนี้ โดยวันนี้ราคาทรุดตัวหลุดแนวรับย่อยลงมาทดสอบระดับ 3,871 ดอลลาร์</strong></span>
+                    <a class="source-pill" href="https://news.google.com/rss/articles/CBMi2AFBVV95cUxQdWxxNHUtVm9iTEJTMXpJSmJyRFc3aC1jZC1qNnNxVURCYVhSUHRXQlVLVDctY003RTFhUzVZTkZ2dUNXaVZRUEZ2UXdtYk5HVGJkZEh0RmNnNkllS2JmY2pPM2l6YkVacEdtdmM0UGNNMUZtTE4tWUNBUzV4X2ZBUlZEbGJtcWlMSEtiTUFDc0xmcEp2aGp4WXVrdXJkZmF3QXZ5OXl6cF85UTRKQ19hMWhMVGZwR1lORFF4TzNxaHpxUXpoU0U5Rzg0QXVRUy1NbHhVMUI2LWY?oc=5" target="_blank" rel="noopener noreferrer">🔗 แหล่งข่าว: MarketWatch</a>
+                </div>
+            </div>
+
+            <button class="toggle-btn" onclick="toggleDetails('crime-file-2', this)">
+                <span>🔎 เจาะลึกแฟ้มคดี</span> <span class="arrow-icon">▼</span>
+            </button>
+        </div>
+
+        <div class="bento-card">
+            <div class="bento-badge-row">
+                <span class="bento-tag">📂 แฟ้มคดีที่ 3</span>
+                <span class="bento-threat">ความเร่งด่วน: ⭐⭐</span>
+            </div>
+            <h3 class="bento-title">บีโอไอ-ตลท.-ก.ล.ต. ลุย &#x27;BOI to IPO&#x27; วางฟาสต์แทร็กดึง New Economy ต่างชาติปักธง SET</h3>
+            
+            <!-- Quick TL;DR Box -->
+            <div class="tldr-pill">
+                <span class="tldr-label">⚡ TL;DR:</span> ภาครัฐเดินหน้าปลดล็อกระเบียบเปิด Fast-Track ให้บริษัทต่างชาติ 10 อุตสาหกรรมเป้าหมายเข้าจดทะเบียน สร้าง &#x27;หุ้นนางฟ้า&#x27; ปลุกเสน่ห์ตลาดทุนไทย
+            </div>
+
+            <!-- Expandable Detailed Investigation -->
+            <div class="bento-deep-dive" id="crime-file-3">
+                <p class="bento-summary">โครงการ BOI to IPO มีความคืบหน้าอย่างเป็นรูปธรรม โดยคณะทำงาน 3 ประสานเร่งวางกระบวนการช่องทางพิเศษ (Fast-Track) ดึงดูดบริษัทข้ามชาติที่ได้รับการส่งเสริมการลงทุนจาก BOI เข้าไประดมทุนใน SET โดยไม่จำกัดสัญชาติ หวังปรับโครงสร้างดัชนีสู่ New Economy และเพิ่มสภาพคล่องในระยะยาว</p>
+                <div class="takeaway-box">
+                    <div class="takeaway-title">🎯 Actionable Takeaways</div>
+                    <div class="takeaway-content">โฟกัสหุ้นกลุ่มนิคมอุตสาหกรรม ที่ปรึกษาทางการเงิน วาณิชธนกิจ และผู้ให้บริการระบบไอทีองค์กรที่จะได้อานิสงส์จากการระดมทุนของบริษัทข้ามชาติเหล่านี้</div>
+                </div>
+                <div class="bento-meta">
+                    <span>🔄 ความต่อเนื่อง: <strong>พัฒนาการต่อเนื่องจากการเปิดเผย 10 คลัสเตอร์เป้าหมาย สู่ขั้นตอนการเปิดรับบริษัทต่างชาติทุกสัญชาติผ่านช่องทางอำนวยความสะดวกเป็นพิเศษ</strong></span>
+                    <a class="source-pill" href="https://news.google.com/rss/articles/CBMiigFBVV95cUxNSi00WGNadndUQUhHU0J3Nmd3Tmp5QkdIOWdVaGQ5QjZJR0pNbVV4ZTBWaXRpSDZzbXFfaHdQMHRiVzI2T3pubnFIX1ppeC15X0ZVTWdHckJsVHlBX2U1cnl0ejc5cnppN1NEU04ySXU4RUpoMUU5UE1BMXVUaEdVdmlpU1FXb3pwR1E?oc=5" target="_blank" rel="noopener noreferrer">🔗 แหล่งข่าว: ตลาดหลักทรัพย์แห่งประเทศไทย</a>
+                </div>
+            </div>
+
+            <button class="toggle-btn" onclick="toggleDetails('crime-file-3', this)">
+                <span>🔎 เจาะลึกแฟ้มคดี</span> <span class="arrow-icon">▼</span>
+            </button>
+        </div>
+        </div>
+
+        <!-- 3. Bull vs Bear Tug-of-War -->
+        <div class="section-header">🐂⚔️🐻 Bull vs Bear Tug-of-War (สมรภูมิกระทิงปะทะหมี)</div>
+        <div class="tug-war-box">
+            <div class="tug-war-header">
+                <span class="bull-pct-text">🐂 ฝั่งกระทิง (Bulls) 38%</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">ฝ่ายหมีเข้าควบคุมตลาดโลกจากแรงกระแทกของ Bond Yield และเงินเฟ้อ ขณะที่ตลาดหุ้นไทยยังทรงตัวรอความชัดเจนของมาตรการกระตุ้นและโครงการ BOI to IPO</span>
+                <span class="bear-pct-text">🐻 ฝั่งหมี (Bears) 62%</span>
+            </div>
+            <div class="tug-war-bar">
+                <div class="tug-bull-fill" style="width: 38%;"></div>
+                <div class="tug-bear-fill" style="width: 62%;"></div>
+            </div>
+            <div class="tug-war-grid">
+                <div class="army-card" style="border-left: 3px solid var(--accent-green);">
+                    <div class="army-title" style="color: var(--accent-green);">กองทัพหนุน (Bullish Drivers)</div>
+                    <ul class="army-list"><li>🟢 นโยบาย &#x27;BOI to IPO&#x27; ขับเคลื่อน 3 ประสาน (บีโอไอ-ตลท.-ก.ล.ต.) เปิดช่องทางพิเศษดึงดูดทุน New Economy ต่างชาติเข้าจดทะเบียน</li><li>🟢 ราคาน้ำมันดิบ WTI ประคองตัวเหนือ $86.80 หนุนกำไรกลุ่มพลังงานต้นน้ำและโรงกลั่นใน SET</li></ul>
+                </div>
+                <div class="army-card" style="border-left: 3px solid var(--accent-red);">
+                    <div class="army-title" style="color: var(--accent-red);">กองทัพกดดัน (Bearish Risks)</div>
+                    <ul class="army-list"><li>🔴 US 10-Year Treasury Yield พุ่งแตะ 5.07% สูงสุดในรอบเกือบสองทศวรรษ ตรึงต้นทุนทางการเงินทั่วโลก</li><li>🔴 เงินบาทอ่อนค่าแตะ 33.87 บาทต่อดอลลาร์ จากดอลลาร์แข็งค่าและแรงเทขายทองคำ Spot ร่วงกว่า -3.22%</li></ul>
+                </div>
             </div>
         </div>
 
-        <div class="story-card">
-            <h3 class="story-title">ทองคำพักฐานแรง -3.13% สู่ $3,875 หลังดอลลาร์แข็งค่า กดดันค่าเงินบาทแกว่งแตะ 33.87 THB</h3>
-            <div class="story-body">ราคาทองคำในตลาดโลก (Gold Spot/Futures) ปรับตัวลดลง 125.10 ดอลลาร์ต่อออนซ์ หรือลดลงราว 3.13% สู่ระดับ 3,875.40 ดอลลาร์ต่อออนซ์ จากการแข็งค่าของค่าเงินดอลลาร์สหรัฐฯ และแรงกดดันของ Bond Yield สหรัฐฯ ที่ปรับตัวสูงขึ้น ซึ่งลดทอนความน่าสนใจของสินทรัพย์ที่ไม่มีผลตอบแทนในรูปดอกเบี้ย ขณะเดียวกัน ค่าเงินบาทเทียบดอลลาร์สหรัฐฯ อ่อนค่าลงแตะ 33.87 บาทต่อดอลลาร์ ส่งผลให้ราคาทองคำในรูปเงินบาทยังคงได้รับแรงประคองบางส่วนจากอัตราแลกเปลี่ยน</div>
-            <div class="takeaway-box">
-                <div class="takeaway-title">🎯 Actionable Takeaways</div>
-                <div class="takeaway-content">ผู้ถือครองทองคำเพื่อเก็งกำไรระยะสั้นควรชะลอการเข้าซื้อจนกว่าราคาทองคำจะสร้างฐานเหนือ 3,850 ดอลลาร์ได้อย่างมั่นคง ส่วนผู้นำเข้าสินค้าควรพิจารณาทำสัญญาป้องกันความเสี่ยงจากอัตราแลกเปลี่ยน (Hedging) ในจังหวะที่เงินบาทยังมีทิศทางอ่อนค่า</div>
+        <!-- 4. Sherlock's Asset Compass -->
+        <div class="section-header">🍰 Sherlock’s Daily Asset Compass (สูตรจัดสัดส่วนพอร์ตวันนี้)</div>
+        <div class="alloc-card">
+            <div style="font-size: 0.85rem; color: var(--text-muted);">คำแนะนำการกระจายสินทรัพย์เพื่อรับมือพลวัตตลาดปัจจุบัน (Total 100%)</div>
+            <div class="alloc-bar">
+<div class="alloc-bar-segment" style="width: 40%; background: #06b6d4;" title="เงินสด &amp; ตราสารหนี้ระยะสั้น: 40%"></div><div class="alloc-bar-segment" style="width: 25%; background: #10b981;" title="หุ้นไทยคุณค่า &amp; ปันผลสูง: 25%"></div><div class="alloc-bar-segment" style="width: 20%; background: #3b82f6;" title="หุ้นโลก / สินทรัพย์เติบโต: 20%"></div><div class="alloc-bar-segment" style="width: 15%; background: #f59e0b;" title="ทองคำ &amp; สินทรัพย์ทางเลือก: 15%"></div>
             </div>
-            <div class="story-footer">
-                <span>🔄 ความต่อเนื่อง: <strong>พัฒนาการต่อเนื่องจากวานนี้ที่ราคาทองคำปรับตัวลงสู่กรอบ 3,870 ดอลลาร์ โดยเช้านี้ราคาทรงตัวในโซน 3,875 ดอลลาร์ ขณะที่เงินบาทขยับอ่อนค่าขึ้นมาอยู่ที่ 33.87 บาทต่อดอลลาร์</strong></span>
-                <a class="source-pill" href="https://news.google.com/rss/articles/CBMib0FVX3lxTE5kS2N1QmprS3IzX3ZuTHRrNlBkaERHTlNMTEdzMkk3bUR3eXo5cDcyMGpiSF9xUVpPQzZHaDBZN2NrbHdFVGpmWTZ1ZXAxMXBuOHlkdzNEcEdRQU44Rm14a3llS1VOUFhPaTByWThqaw?oc=5" target="_blank" rel="noopener noreferrer">🔗 แหล่งข่าว: CNBC</a>
+            <div class="alloc-legend">
+<div class="alloc-legend-item"><span class="alloc-dot" style="background: #06b6d4;"></span><span>เงินสด &amp; ตราสารหนี้ระยะสั้น <strong>40%</strong></span></div><div class="alloc-legend-item"><span class="alloc-dot" style="background: #10b981;"></span><span>หุ้นไทยคุณค่า &amp; ปันผลสูง <strong>25%</strong></span></div><div class="alloc-legend-item"><span class="alloc-dot" style="background: #3b82f6;"></span><span>หุ้นโลก / สินทรัพย์เติบโต <strong>20%</strong></span></div><div class="alloc-legend-item"><span class="alloc-dot" style="background: #f59e0b;"></span><span>ทองคำ &amp; สินทรัพย์ทางเลือก <strong>15%</strong></span></div>
             </div>
-        </div>
         </div>
 
-        <!-- 3. Market Briefs -->
-        <div class="section-header">⚡ สรุปข่าวสั้นรอบตลาด (Market Briefs)</div>
-        <div class="briefs-grid" id="market-briefs-container">
+        <!-- 5. Briefs & Watchlist -->
+        <div class="bottom-grid">
+            <div>
+                <div class="section-header" style="margin-top: 0;">⚡ Market Briefs รอบตลาด</div>
 
         <div class="brief-item">
-            <span class="brief-tag">#Energy</span>
-            <div class="brief-headline">น้ำมันดิบ WTI ทรงตัวที่ $86.69 ท่ามกลางสมดุลอุปสงค์และเงินเฟ้อ</div>
-            <div class="brief-text">ราคาน้ำมันดิบ WTI ปรับขึ้นเล็กน้อย 0.18% อยู่ที่ 86.69 ดอลลาร์ต่อบาร์เรล โดยตลาดยังคงประเมินความสมดุลระหว่างอุปสงค์พลังงานทั่วโลกและความเสี่ยงเศรษฐกิจชะลอตัวจากดอกเบี้ยขาขึ้น</div>
+            <span class="brief-tag">#Bonds</span>
+            <div class="brief-headline">ยีลด์ 10 ปี ทุบสถิติรอบ 19 เดือน</div>
+            <div class="brief-text">US 10Y Yield แตะ 5.07% สะท้อนมุมมองดอกเบี้ยขาขึ้นที่ยาวนานกว่าคาด</div>
         </div>
 
         <div class="brief-item">
-            <span class="brief-tag">#Equities</span>
-            <div class="brief-headline">SET Index ปิดทรงตัวที่ 1,499.06 จุด รอความชัดเจนทิศทางเงินทุนโลก</div>
-            <div class="brief-text">ตลาดหุ้นไทยเคลื่อนไหวในกรอบแคบและปิดทรงตัวที่ระดับ 1,499.06 จุด โดยนักลงทุนชะลอการซื้อขายเพื่อติดตามทิศทางอัตราผลตอบแทนพันธบัตรสหรัฐฯ และความคืบหน้าของมาตรการกระตุ้นเศรษฐกิจในประเทศ</div>
-        </div>
-        </div>
-
-        <!-- 4. Today's Watchlist -->
-        <div class="section-header">📅 วาระเศรษฐกิจต้องจับตาวันนี้ (Today's Watchlist)</div>
-        <div class="strategy-box" style="margin-bottom: 24px;" id="watchlist-container">
-<ul class='strategy-list'><li>⏱️ <strong>ตลอดวัน:</strong> ติดตามความเคลื่อนไหวของกระแสเงินทุนต่างชาติ (Fund Flow) ในตลาดตราสารหนี้และตลาดหุ้นไทย หลัง Bond Yield สหรัฐฯ ขยับขึ้นเหนือ 5.07%</li><li>⏱️ <strong>ช่วงการเปิดตลาดภาคเช้า:</strong> การตอบรับของราคาหุ้นกลุ่มผู้พัฒนาเทคโนโลยีและนิคมอุตสาหกรรมต่อรายละเอียดโครงการ BOI to IPO 10 อุตสาหกรรมเป้าหมาย</li></ul>
+            <span class="brief-tag">#FX</span>
+            <div class="brief-headline">เงินบาทอ่อนค่าแตะ 33.87 THB/USD</div>
+            <div class="brief-text">ดอลลาร์สหรัฐฯ แข็งค่าต่อเนื่องรับ Yield สหรัฐฯ ขยับสูง กดดันค่าเงินเอเชีย</div>
         </div>
 
-        <!-- 5. Deep Insights & Portfolio Compass -->
-        <div class="section-header">🧭 ข้อมูลเชิงลึก & กลยุทธ์พอร์ตโฟลิโอ (Strategic Portfolio Compass)</div>
-        <div class="strategy-container">
-            <div class="strategy-box box-green">
-                <div class="box-heading" style="color: var(--accent-green);">🟢 กลุ่มที่ได้ประโยชน์ (Beneficiaries)</div>
-                <ul class="strategy-list" id="beneficiaries-list">
-<li>กลุ่มธุรกิจส่งออกอาหารและอิเล็กทรอนิกส์: ได้รับประโยชน์จากการอ่อนค่าของเงินบาทแตะระดับ 33.87 บาทต่อดอลลาร์</li><li>กลุ่มธนาคารพาณิชย์ขนาดใหญ่: ได้รับอานิสงส์จากสภาพแวดล้อมอัตราดอกเบี้ยที่ยังคงอยู่ในระดับสูง ซึ่งช่วยประคองส่วนต่างรายได้ดอกเบี้ยสุทธิ (NIM)</li>
-                </ul>
+        <div class="brief-item">
+            <span class="brief-tag">#Commodities</span>
+            <div class="brief-headline">น้ำมันดิบ WTI ทรงตัวที่ $86.80</div>
+            <div class="brief-text">ราคาน้ำมันได้แรงพยุงจากอุปทานตึงตัว แม้ความกังวลเงินเฟ้อเริ่มส่งผลต่อแนวโน้มการเติบโต</div>
+        </div>
+
+        <div class="brief-item">
+            <span class="brief-tag">#Policy</span>
+            <div class="brief-headline">ตลท. ก.ล.ต. บีโอไอ ขับเคลื่อน New Economy</div>
+            <div class="brief-text">เตรียมขยายเกณฑ์ระดมทุนต้อนรับบริษัทต่างชาติผ่านแพลตฟอร์ม BOI to IPO</div>
+        </div>
             </div>
-            <div class="strategy-box box-red">
-                <div class="box-heading" style="color: var(--accent-red);">🔴 กลุ่มที่ต้องระวัง (Risk Watchlist)</div>
-                <ul class="strategy-list" id="risks-list">
-<li>สินทรัพย์ปลอดภัยและทองคำ: เผชิญแรงกดดันจากการแข็งค่าของเงินดอลลาร์และแรงขายทางเทคนิคหลังปรับฐานลงกว่า 3%</li><li>กลุ่มธุรกิจที่มีภาระหนี้สินระดับสูง: มีความเสี่ยงจากต้นทุนทางการเงิน (Cost of Debt) ที่มีแนวโน้มทรงตัวสูงยาวนานขึ้นตามทิศทาง Bond Yield</li>
-                </ul>
-            </div>
-            <div class="strategy-box box-blue">
-                <div class="box-heading" style="color: var(--accent-cyan);">💡 นัยเชิงกลยุทธ์ (Strategic Takeaways)</div>
-                <ul class="strategy-list" id="strategy-list">
-<li>เน้นการลงทุนเชิงรับ (Defensive Strategy) โดยจัดสรรน้ำหนักไปยังหุ้นกลุ่มปันผลสูงและกลุ่มที่มีงบดุลแข็งแกร่ง หนี้สินต่ำ</li><li>ล็อกผลตอบแทนในตราสารหนี้คุณภาพสูงระยะสั้นเพื่อลดความเสี่ยงด้านความผันผวนของราคา (Duration Risk) ในช่วงที่ Bond Yield 10 ปี ทะลุ 5.07%</li><li>สำหรับผู้ลงทุนในทองคำ แนะนำให้รอดูสัญญาณการสร้างฐานราคา (Base Formation) บริเวณแนวรับสำคัญก่อนพิจารณาทยอยสะสมรอบใหม่</li>
-                </ul>
+            <div>
+                <div class="section-header" style="margin-top: 0;">📅 Today's Watchlist & กลยุทธ์</div>
+                <div class="strategy-box">
+                    <div style="font-weight: 800; color: var(--accent-cyan); margin-bottom: 8px;">วาระสำคัญวันนี้:</div>
+<ul class='strategy-list'><li>⏱️ <strong>ตลอดวัน:</strong> การตอบรับของ Fund Flow ต่างชาติในตลาดพันธบัตรไทยหลัง US 10Y Yield ทะลุ 5.07%</li><li>⏱️ <strong>19:30 น.:</strong> ถ้อยแถลงกรรมการ Fed รายบุคคลเกี่ยวกับทิศทางดอกเบี้ยนโยบายก่อนการประชุมเดือน ธ.ค.</li></ul>
+                    <div style="border-top: 1px solid var(--border); margin: 12px 0;"></div>
+                    <div style="font-weight: 800; color: var(--accent-gold); margin-bottom: 6px;">💡 คำแนะนำกลยุทธ์หลัก:</div>
+                    <div style="font-size: 0.88rem; color: #f1f5f9;">คงสัดส่วนเงินสดและตราสารหนี้ระยะสั้นไว้ที่ 40% เพื่อเป็นกระสุนสำรอง พร้อมหมุนเงินเข้าสะสมหุ้นไทยที่มีปันผลสูงและได้ประโยชน์จากเงินบาทอ่อนค่า</div>
+                </div>
             </div>
         </div>
 
         <footer>
-            MarketSherlock v1.0 • พัฒนาด้วย Google Gemini 3.8 Flash & Python Autonomous Pipeline • แหล่งข่าว: Bloomberg, Reuters, FT, WSJ, ก.ล.ต., ธปท., ตลาดหลักทรัพย์ฯ, สภาพัฒน์
+            MarketSherlock Cockpit v2.0 • ขับเคลื่อนด้วย Google Gemini 3.8 Flash VIP & Python Autonomous Pipeline • แหล่งข่าว: Bloomberg, Reuters, FT, WSJ, ก.ล.ต., ธปท., ตลาดหลักทรัพย์ฯ, สภาพัฒน์
         </footer>
     </div>
 
-    <!-- Hidden markdown storage for copy button -->
+    <!-- Hidden Raw Markdown for Copy Button -->
     <textarea id="raw-markdown-data" style="display:none;"># 🕵️‍♂️ สรุปข่าวเศรษฐกิจทั่วโลก (8.00 น.) — 12 พฤศจิกายน 2569
-*อัปเดตอัตโนมัติโดย MarketSherlock • เวลา 23:15 น. (Asia/Bangkok)*
+*อัปเดตอัตโนมัติโดย MarketSherlock Financial Cockpit • เวลา 23:44 น. (Asia/Bangkok)*
 
 ---
 
@@ -540,88 +946,165 @@
 | สินทรัพย์ / ดัชนี | สัญลักษณ์ | ราคาล่าสุด | การเปลี่ยนแปลง | ทิศทาง |
 | :--- | :--- | :---: | :---: | :---: |
 | **SET Index** | `^SET.BK` | 1,499.06 | +0.00 (+0.00%) | ⚪ |
-| **S&amp;P 500** | `^GSPC` | 7,642.54 | +23.16 (+0.30%) | 🟢 |
-| **US 10Y Yield** | `^TNX` | 5.07% | +0.07 (+1.44%) | 🟢 |
-| **Crude Oil (WTI)** | `CL=F` | 86.69 | +0.16 (+0.18%) | 🟢 |
-| **Gold (Spot/Futures)** | `GC=F` | 3,875.40 | -125.10 (-3.13%) | 🔴 |
+| **S&amp;P 500** | `^GSPC` | 7,625.42 | +6.04 (+0.08%) | 🟢 |
+| **US 10Y Yield** | `^TNX` | 5.07% | +0.08 (+1.52%) | 🟢 |
+| **Crude Oil (WTI)** | `CL=F` | 86.80 | +0.27 (+0.31%) | 🟢 |
+| **Gold (Spot/Futures)** | `GC=F` | 3,871.80 | -128.70 (-3.22%) | 🔴 |
 | **USD/THB** | `THB=X` | 33.87THB | +0.28 (+0.84%) | 🟢 |
 
 ---
 
 ## 🔍 ข่าวหลักและการวิเคราะห์เชิงลึก (Main Stories)
 
-### 1. US 10Y Yield ทะยานแตะ 5.07% รับเงินเฟ้อตึงมือ ตลาดให้น้ำหนัก Fed ขึ้นดอกเบี้ยรอบ ธ.ค.
-อัตราผลตอบแทนพันธบัตรรัฐบาลสหรัฐฯ อายุ 10 ปี ขยับขึ้นต่อเนื่องสู่ 5.07% ภายหลังรายงานดัชนีราคาผู้บริโภค (CPI) เดือนตุลาคมสะท้อนแรงกดดันราคาที่ยังกระจายตัวในวงกว้างมากกว่าหมวดพลังงาน ตัวเลขดังกล่าวส่งผลให้ตลาดปรับเพิ่มโอกาสที่ธนาคารกลางสหรัฐฯ (Fed) จะปรับขึ้นอัตราดอกเบี้ยนโยบายในการประชุมเดือนธันวาคม เพื่อสกัดแรงกดดันเงินเฟ้อที่ยังคงอยู่ แม้ดัชนี S&amp;P 500 จะทรงตัวบวกได้เล็กน้อย 0.30% แต่นักลงทุนในตลาดตราสารหนี้ยังคงระมัดระวังต่อระดับอัตราดอกเบี้ยนโยบายที่อาจทรงตัวสูงยาวนานขึ้น
+### 1. วิกฤตยีลด์ 5.07% สั่นสะเทือนวอลล์สตรีท: เงินเฟ้อสหรัฐฯ ร้อนฉ่า ดันเฟดจ่อขึ้นดอกเบี้ย ธ.ค. ⭐⭐⭐⭐⭐
+&gt; **⚡ TL;DR:** อัตราผลตอบแทนพันธบัตรรัฐบาลสหรัฐฯ อายุ 10 ปี ทะยานแตะ 5.07% หลังตัวเลขเงินเฟ้อสูงเกินคาด กดดันตลาดหุ้นทั่วโลกและเร่งการไหลออกของเงินทุน
+
+แรงกดดันด้านราคาสินค้าที่กระจายตัวเป็นวงกว้างในสหรัฐฯ ตอกย้ำโอกาสที่ธนาคารกลางสหรัฐฯ (Fed) จะตัดสินใจปรับขึ้นอัตราดอกเบี้ยนโยบายอีกครั้งในการประชุมเดือนธันวาคม ส่งผลให้บอนด์ยีลด์ 10 ปี พุ่งแตะ 5.07% ในรอบ 19 เดือน และผลักดันค่าเงินดอลลาร์แข็งค่าอย่างรวดเร็ว
 
 &gt; [!TIP]
-&gt; **🎯 Actionable Takeaways:** กระจายความเสี่ยงในพอร์ตตราสารหนี้สู่พันธบัตรระยะสั้น (Short Duration) และเน้นหุ้นกลุ่มที่มีกระแสเงินสดแข็งแกร่ง (Free Cash Flow สูง) เพื่อลดผลกระทบจาก Bond Yield ที่อยู่ในระดับสูง
+&gt; **🎯 Actionable Takeaways:** ลดสัดส่วนหุ้นเทคโนโลยีที่มี Valuation สูงและภาระหนี้แปรผัน เพิ่มการถือครองตราสารหนี้ระยะสั้นเพื่อล็อกผลตอบแทน Yield สูงโดยไม่เสี่ยง Duration Risk
 &gt; 
-&gt; 🔄 **ความต่อเนื่อง:** พัฒนาการต่อเนื่องจากวานนี้ที่ US 10Y Yield ทะลุ 5.06% โดยเช้านี้ไต่ระดับขึ้นมาแตะ 5.07% ตามแรงหนุนจากคาดการณ์การดำเนินนโยบายการเงินที่เข้มงวดของ Fed
-&gt; 
-&gt; 🔗 **แหล่งที่มา:** [WSJ](https://news.google.com/rss/articles/CBMiekFVX3lxTFBTM0hlaW1Oc0FQRUY5YXRsYlgyQVZIMDhlUnpob3ZiZU9DbF9LdE5ocmRGaXNrXzhSU3BDVmhyalFqSXp0WU1WamlZcTAyWUR1U2FEN1h5N1hvNVR6a1ZpeVhVZFktVDRIYXdDSzh0UXRVRVc3RUZMdGZ3?oc=5)
-
-### 2. เจาะลึก 10 คลัสเตอร์เป้าหมาย &#x27;BOI to IPO&#x27; วางช่องทางพิเศษดึงทุนต่างชาติระดมทุนในไทย
-ความคืบหน้าของโครงการร่วมระหว่างสำนักงานคณะกรรมการส่งเสริมการลงทุน (BOI), สำนักงาน ก.ล.ต. และตลาดหลักทรัพย์แห่งประเทศไทย (SET) ได้เริ่มกำหนดทิศทางเชิงปฏิบัติการ โดยมุ่งเป้าไปที่ 10 อุตสาหกรรมแห่งอนาคต (New Economy) อาทิ เทคโนโลยีขั้นสูงและพลังงานสะอาด ทั้งนี้ มีการพิจารณาจัดทำช่องทางพิเศษ (Special Track) เพื่อสนับสนุนให้บริษัทข้ามชาติที่ได้รับสิทธิประโยชน์และเข้ามาตั้งฐานการผลิตในไทยสามารถเข้าจดทะเบียนในตลาดทุนไทยได้โดยไม่จำกัดสัญชาติ เพื่อเพิ่มขนาดและสภาพคล่องให้ตลาดหุ้นไทยในระยะยาว
-
-&gt; [!TIP]
-&gt; **🎯 Actionable Takeaways:** จับตาหุ้นกลุ่มที่ปรึกษาทางการเงิน (FA), วาณิชธนกิจ และกลุ่มนิคมอุตสาหกรรมที่จะได้ประโยชน์ทางอ้อมจากการขยายตัวของระบบนิเวศการลงทุน New Economy
-&gt; 
-&gt; 🔄 **ความต่อเนื่อง:** พัฒนาการต่อเนื่องจากวานนี้ที่เริ่มวางกรอบความร่วมมือ 3 ฝ่าย วันนี้มีความชัดเจนเพิ่มเติมเรื่องการเจาะลึก 10 อุตสาหกรรมเป้าหมายและการเปิดช่องทางพิเศษรับบริษัทต่างชาติทุกสัญชาติ
-&gt; 
-&gt; 🔗 **แหล่งที่มา:** [Thunhoon](https://news.google.com/rss/articles/CBMiZkFVX3lxTE43cGY0aWNTNzdDRzluUE9yMVNyVWRiejJ6T1ZjbDJvZmdLWmtNMzRXX0hveHUyT3FoOTJ6UEZkVUxlVml0LXBVUkNhX1hGSWw2Ujhpem8ydjZkZVNocTd3QWxnaVJJZw?oc=5)
-
-### 3. ทองคำพักฐานแรง -3.13% สู่ $3,875 หลังดอลลาร์แข็งค่า กดดันค่าเงินบาทแกว่งแตะ 33.87 THB
-ราคาทองคำในตลาดโลก (Gold Spot/Futures) ปรับตัวลดลง 125.10 ดอลลาร์ต่อออนซ์ หรือลดลงราว 3.13% สู่ระดับ 3,875.40 ดอลลาร์ต่อออนซ์ จากการแข็งค่าของค่าเงินดอลลาร์สหรัฐฯ และแรงกดดันของ Bond Yield สหรัฐฯ ที่ปรับตัวสูงขึ้น ซึ่งลดทอนความน่าสนใจของสินทรัพย์ที่ไม่มีผลตอบแทนในรูปดอกเบี้ย ขณะเดียวกัน ค่าเงินบาทเทียบดอลลาร์สหรัฐฯ อ่อนค่าลงแตะ 33.87 บาทต่อดอลลาร์ ส่งผลให้ราคาทองคำในรูปเงินบาทยังคงได้รับแรงประคองบางส่วนจากอัตราแลกเปลี่ยน
-
-&gt; [!TIP]
-&gt; **🎯 Actionable Takeaways:** ผู้ถือครองทองคำเพื่อเก็งกำไรระยะสั้นควรชะลอการเข้าซื้อจนกว่าราคาทองคำจะสร้างฐานเหนือ 3,850 ดอลลาร์ได้อย่างมั่นคง ส่วนผู้นำเข้าสินค้าควรพิจารณาทำสัญญาป้องกันความเสี่ยงจากอัตราแลกเปลี่ยน (Hedging) ในจังหวะที่เงินบาทยังมีทิศทางอ่อนค่า
-&gt; 
-&gt; 🔄 **ความต่อเนื่อง:** พัฒนาการต่อเนื่องจากวานนี้ที่ราคาทองคำปรับตัวลงสู่กรอบ 3,870 ดอลลาร์ โดยเช้านี้ราคาทรงตัวในโซน 3,875 ดอลลาร์ ขณะที่เงินบาทขยับอ่อนค่าขึ้นมาอยู่ที่ 33.87 บาทต่อดอลลาร์
+&gt; 🔄 **ความต่อเนื่อง:** พัฒนาการต่อเนื่องจากวานนี้ที่ US 10Y Yield แตะระดับ 5.06% โดยล่าสุดได้ขยับขึ้นทะลุ 5.07% หลังตลาดซึมซับรายงาน CPI ที่ยืดเยื้อ
 &gt; 
 &gt; 🔗 **แหล่งที่มา:** [CNBC](https://news.google.com/rss/articles/CBMib0FVX3lxTE5kS2N1QmprS3IzX3ZuTHRrNlBkaERHTlNMTEdzMkk3bUR3eXo5cDcyMGpiSF9xUVpPQzZHaDBZN2NrbHdFVGpmWTZ1ZXAxMXBuOHlkdzNEcEdRQU44Rm14a3llS1VOUFhPaTByWThqaw?oc=5)
+
+### 2. ทองคำถูกล้างพอร์ตดิ่งเหว -3.22% สู่ $3,871 บาทอ่อนค่าระนาว 33.87 รับดอลลาร์แกร่ง ⭐⭐⭐⭐
+&gt; **⚡ TL;DR:** ราคาทองคำ Spot ร่วงหนักกว่า 128 ดอลลาร์ จากแรงกดดัน Real Yield สหรัฐฯ พุ่ง ฉุดค่าเงินบาทอ่อนค่าแตะ 33.87 THB
+
+การแข็งค่าขึ้นอย่างรวดเร็วของเงินดอลลาร์สหรัฐฯ และการพุ่งขึ้นของอัตราผลตอบแทนพันธบัตรแท้จริง (Real Yield) จุดชนวนให้เกิดแรงขายทำกำไรทองคำครั้งใหญ่กว่า -3.22% ลงมาปิดที่ 3,871.80 ดอลลาร์ ขณะเดียวกันส่งผลทางอ้อมให้เงินบาทอ่อนค่าต่อเนื่องมาอยู่ที่ 33.87 บาทต่อดอลลาร์
+
+&gt; [!TIP]
+&gt; **🎯 Actionable Takeaways:** ชะลอการเข้าซื้อเก็งกำไรทองคำระยะสั้น รอตั้งรับในโซนแนวรับสำคัญทางเทคนิค และใช้จังหวะบาทอ่อนเป็นโอกาสล็อกกำไรหุ้นกลุ่มส่งออก
+&gt; 
+&gt; 🔄 **ความต่อเนื่อง:** พัฒนาการต่อเนื่องจากรอบการพักฐานสู่กรอบ $3,875 เมื่อวานนี้ โดยวันนี้ราคาทรุดตัวหลุดแนวรับย่อยลงมาทดสอบระดับ 3,871 ดอลลาร์
+&gt; 
+&gt; 🔗 **แหล่งที่มา:** [MarketWatch](https://news.google.com/rss/articles/CBMi2AFBVV95cUxQdWxxNHUtVm9iTEJTMXpJSmJyRFc3aC1jZC1qNnNxVURCYVhSUHRXQlVLVDctY003RTFhUzVZTkZ2dUNXaVZRUEZ2UXdtYk5HVGJkZEh0RmNnNkllS2JmY2pPM2l6YkVacEdtdmM0UGNNMUZtTE4tWUNBUzV4X2ZBUlZEbGJtcWlMSEtiTUFDc0xmcEp2aGp4WXVrdXJkZmF3QXZ5OXl6cF85UTRKQ19hMWhMVGZwR1lORFF4TzNxaHpxUXpoU0U5Rzg0QXVRUy1NbHhVMUI2LWY?oc=5)
+
+### 3. บีโอไอ-ตลท.-ก.ล.ต. ลุย &#x27;BOI to IPO&#x27; วางฟาสต์แทร็กดึง New Economy ต่างชาติปักธง SET ⭐⭐
+&gt; **⚡ TL;DR:** ภาครัฐเดินหน้าปลดล็อกระเบียบเปิด Fast-Track ให้บริษัทต่างชาติ 10 อุตสาหกรรมเป้าหมายเข้าจดทะเบียน สร้าง &#x27;หุ้นนางฟ้า&#x27; ปลุกเสน่ห์ตลาดทุนไทย
+
+โครงการ BOI to IPO มีความคืบหน้าอย่างเป็นรูปธรรม โดยคณะทำงาน 3 ประสานเร่งวางกระบวนการช่องทางพิเศษ (Fast-Track) ดึงดูดบริษัทข้ามชาติที่ได้รับการส่งเสริมการลงทุนจาก BOI เข้าไประดมทุนใน SET โดยไม่จำกัดสัญชาติ หวังปรับโครงสร้างดัชนีสู่ New Economy และเพิ่มสภาพคล่องในระยะยาว
+
+&gt; [!TIP]
+&gt; **🎯 Actionable Takeaways:** โฟกัสหุ้นกลุ่มนิคมอุตสาหกรรม ที่ปรึกษาทางการเงิน วาณิชธนกิจ และผู้ให้บริการระบบไอทีองค์กรที่จะได้อานิสงส์จากการระดมทุนของบริษัทข้ามชาติเหล่านี้
+&gt; 
+&gt; 🔄 **ความต่อเนื่อง:** พัฒนาการต่อเนื่องจากการเปิดเผย 10 คลัสเตอร์เป้าหมาย สู่ขั้นตอนการเปิดรับบริษัทต่างชาติทุกสัญชาติผ่านช่องทางอำนวยความสะดวกเป็นพิเศษ
+&gt; 
+&gt; 🔗 **แหล่งที่มา:** [ตลาดหลักทรัพย์แห่งประเทศไทย](https://news.google.com/rss/articles/CBMiigFBVV95cUxNSi00WGNadndUQUhHU0J3Nmd3Tmp5QkdIOWdVaGQ5QjZJR0pNbVV4ZTBWaXRpSDZzbXFfaHdQMHRiVzI2T3pubnFIX1ppeC15X0ZVTWdHckJsVHlBX2U1cnl0ejc5cnppN1NEU04ySXU4RUpoMUU5UE1BMXVUaEdVdmlpU1FXb3pwR1E?oc=5)
 
 ---
 
 ## ⚡ สรุปข่าวสั้นรอบตลาด (Market Briefs)
 
-- **`#Energy` น้ำมันดิบ WTI ทรงตัวที่ $86.69 ท่ามกลางสมดุลอุปสงค์และเงินเฟ้อ**: ราคาน้ำมันดิบ WTI ปรับขึ้นเล็กน้อย 0.18% อยู่ที่ 86.69 ดอลลาร์ต่อบาร์เรล โดยตลาดยังคงประเมินความสมดุลระหว่างอุปสงค์พลังงานทั่วโลกและความเสี่ยงเศรษฐกิจชะลอตัวจากดอกเบี้ยขาขึ้น
-- **`#Equities` SET Index ปิดทรงตัวที่ 1,499.06 จุด รอความชัดเจนทิศทางเงินทุนโลก**: ตลาดหุ้นไทยเคลื่อนไหวในกรอบแคบและปิดทรงตัวที่ระดับ 1,499.06 จุด โดยนักลงทุนชะลอการซื้อขายเพื่อติดตามทิศทางอัตราผลตอบแทนพันธบัตรสหรัฐฯ และความคืบหน้าของมาตรการกระตุ้นเศรษฐกิจในประเทศ
+- **`#Bonds` ยีลด์ 10 ปี ทุบสถิติรอบ 19 เดือน**: US 10Y Yield แตะ 5.07% สะท้อนมุมมองดอกเบี้ยขาขึ้นที่ยาวนานกว่าคาด
+- **`#FX` เงินบาทอ่อนค่าแตะ 33.87 THB/USD**: ดอลลาร์สหรัฐฯ แข็งค่าต่อเนื่องรับ Yield สหรัฐฯ ขยับสูง กดดันค่าเงินเอเชีย
+- **`#Commodities` น้ำมันดิบ WTI ทรงตัวที่ $86.80**: ราคาน้ำมันได้แรงพยุงจากอุปทานตึงตัว แม้ความกังวลเงินเฟ้อเริ่มส่งผลต่อแนวโน้มการเติบโต
+- **`#Policy` ตลท. ก.ล.ต. บีโอไอ ขับเคลื่อน New Economy**: เตรียมขยายเกณฑ์ระดมทุนต้อนรับบริษัทต่างชาติผ่านแพลตฟอร์ม BOI to IPO
 
 ---
 
 ## 📅 วาระเศรษฐกิจต้องจับตาวันนี้ (Today&#x27;s Watchlist)
 
-- ⏱️ **ตลอดวัน**: ติดตามความเคลื่อนไหวของกระแสเงินทุนต่างชาติ (Fund Flow) ในตลาดตราสารหนี้และตลาดหุ้นไทย หลัง Bond Yield สหรัฐฯ ขยับขึ้นเหนือ 5.07%
-- ⏱️ **ช่วงการเปิดตลาดภาคเช้า**: การตอบรับของราคาหุ้นกลุ่มผู้พัฒนาเทคโนโลยีและนิคมอุตสาหกรรมต่อรายละเอียดโครงการ BOI to IPO 10 อุตสาหกรรมเป้าหมาย
+- ⏱️ **ตลอดวัน**: การตอบรับของ Fund Flow ต่างชาติในตลาดพันธบัตรไทยหลัง US 10Y Yield ทะลุ 5.07%
+- ⏱️ **19:30 น.**: ถ้อยแถลงกรรมการ Fed รายบุคคลเกี่ยวกับทิศทางดอกเบี้ยนโยบายก่อนการประชุมเดือน ธ.ค.
 
 ---
 
 ## 🧭 ข้อมูลเชิงลึก &amp; กลยุทธ์พอร์ตโฟลิโอ (Deep Insights)
 
 ### 🟢 กลุ่มที่ได้ประโยชน์ (Beneficiaries)
-- กลุ่มธุรกิจส่งออกอาหารและอิเล็กทรอนิกส์: ได้รับประโยชน์จากการอ่อนค่าของเงินบาทแตะระดับ 33.87 บาทต่อดอลลาร์
-- กลุ่มธนาคารพาณิชย์ขนาดใหญ่: ได้รับอานิสงส์จากสภาพแวดล้อมอัตราดอกเบี้ยที่ยังคงอยู่ในระดับสูง ซึ่งช่วยประคองส่วนต่างรายได้ดอกเบี้ยสุทธิ (NIM)
+- กลุ่มส่งออกอาหารและอิเล็กทรอนิกส์ (เช่น CPF, DELTA) ได้อานิสงส์เชิงบวกจากเงินบาทที่อ่อนค่าแตะ 33.87
+- กลุ่มนิคมอุตสาหกรรม (WHA, AMATA) รับประโยชน์โดยตรงจากโครงการ BOI to IPO ที่เร่งการลงทุนจากต่างชาติ
+- กลุ่มธนาคารพาณิชย์ขนาดใหญ่ (BBL, KTB) ที่ได้แรงหนุนจาก NIM ในภาวะอัตราดอกเบี้ยโลกอยู่ในระดับสูงยาวนาน
 
 ### 🔴 กลุ่มที่ต้องระวัง (Risk Watchlist)
-- สินทรัพย์ปลอดภัยและทองคำ: เผชิญแรงกดดันจากการแข็งค่าของเงินดอลลาร์และแรงขายทางเทคนิคหลังปรับฐานลงกว่า 3%
-- กลุ่มธุรกิจที่มีภาระหนี้สินระดับสูง: มีความเสี่ยงจากต้นทุนทางการเงิน (Cost of Debt) ที่มีแนวโน้มทรงตัวสูงยาวนานขึ้นตามทิศทาง Bond Yield
+- กลุ่มหุ้นเทคโนโลยีที่มีอัตราส่วน P/E สูง เสี่ยงต่อการถูก De-rating จากต้นทุน Discount Rate ที่พุ่งตาม Yield 5.07%
+- กองทุนทองคำและตราสารอ้างอิงทองคำ เผชิญแรงเทขายรุนแรงจากการแข็งค่าของเงินดอลลาร์
+- กลุ่มไฟแนนซ์และเช่าซื้อ เผชิญความเสี่ยงด้านต้นทุน Roll-over หุ้นกู้และ NPL ที่อาจเร่งตัวขึ้น
 
 ### 💡 นัยเชิงกลยุทธ์ (Strategic Takeaways)
-- เน้นการลงทุนเชิงรับ (Defensive Strategy) โดยจัดสรรน้ำหนักไปยังหุ้นกลุ่มปันผลสูงและกลุ่มที่มีงบดุลแข็งแกร่ง หนี้สินต่ำ
-- ล็อกผลตอบแทนในตราสารหนี้คุณภาพสูงระยะสั้นเพื่อลดความเสี่ยงด้านความผันผวนของราคา (Duration Risk) ในช่วงที่ Bond Yield 10 ปี ทะลุ 5.07%
-- สำหรับผู้ลงทุนในทองคำ แนะนำให้รอดูสัญญาณการสร้างฐานราคา (Base Formation) บริเวณแนวรับสำคัญก่อนพิจารณาทยอยสะสมรอบใหม่
+- คงสัดส่วนเงินสดและตราสารหนี้ระยะสั้นไว้ที่ 40% เพื่อเป็นกระสุนสำรอง พร้อมหมุนเงินเข้าสะสมหุ้นไทยที่มีปันผลสูงและได้ประโยชน์จากเงินบาทอ่อนค่า
 
 ---
 *จัดทำและตรวจสอบความถูกต้องโดย MarketSherlock Autonomous Intelligence Pipeline*</textarea>
 
+    <!-- Client-side Interactive Logic -->
     <script>
+        function toggleDetails(id, btn) {
+            const el = document.getElementById(id);
+            if (el.classList.contains('open')) {
+                el.classList.remove('open');
+                btn.querySelector('span').textContent = '🔎 เจาะลึกแฟ้มคดี';
+                btn.querySelector('.arrow-icon').textContent = '▼';
+            } else {
+                el.classList.add('open');
+                btn.querySelector('span').textContent = '📁 ย่อเก็บแฟ้ม';
+                btn.querySelector('.arrow-icon').textContent = '▲';
+            }
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('ms_theme', theme);
+        }
+
+        const savedTheme = localStorage.getItem('ms_theme');
+        if (savedTheme) {
+            setTheme(savedTheme);
+        }
+
         function copyMarkdown() {
             const md = document.getElementById('raw-markdown-data').value;
             navigator.clipboard.writeText(md).then(() => {
-                alert("คัดลอกสรุป Markdown เรียบร้อยแล้ว!");
-            }).catch(() => {
-                alert("ไม่สามารถคัดลอกได้");
+                alert("📋 คัดลอกรายงานสรุป Markdown เรียบร้อยแล้ว!");
             });
+        }
+
+        // Native Browser Voice Narration
+        let isSpeaking = false;
+        const voiceText = "รายงานสรุปข่าวเศรษฐกิจรอบโลก มาร์เก็ตเชอร์ล็อก ประจำวันที่ 12 พฤศจิกายน 2569 อารมณ์ตลาดวันนี้อยู่ในเกณฑ์ Fear คะแนน 40 เต็ม 100 ดัชนีหลัก ข่าวที่ 1: วิกฤตยีลด์ 5.07% สั่นสะเทือนวอลล์สตรีท: เงินเฟ้อสหรัฐฯ ร้อนฉ่า ดันเฟดจ่อขึ้นดอกเบี้ย ธ.ค. จุดสำคัญคือ อัตราผลตอบแทนพันธบัตรรัฐบาลสหรัฐฯ อายุ 10 ปี ทะยานแตะ 5.07% หลังตัวเลขเงินเฟ้อสูงเกินคาด กดดันตลาดหุ้นทั่วโลกและเร่งการไหลออกของเงินทุน. ข่าวที่ 2: ทองคำถูกล้างพอร์ตดิ่งเหว -3.22% สู่ $3,871 บาทอ่อนค่าระนาว 33.87 รับดอลลาร์แกร่ง จุดสำคัญคือ ราคาทองคำ Spot ร่วงหนักกว่า 128 ดอลลาร์ จากแรงกดดัน Real Yield สหรัฐฯ พุ่ง ฉุดค่าเงินบาทอ่อนค่าแตะ 33.87 THB. ข่าวที่ 3: บีโอไอ-ตลท.-ก.ล.ต. ลุย &#x27;BOI to IPO&#x27; วางฟาสต์แทร็กดึง New Economy ต่างชาติปักธง SET จุดสำคัญคือ ภาครัฐเดินหน้าปลดล็อกระเบียบเปิด Fast-Track ให้บริษัทต่างชาติ 10 อุตสาหกรรมเป้าหมายเข้าจดทะเบียน สร้าง &#x27;หุ้นนางฟ้า&#x27; ปลุกเสน่ห์ตลาดทุนไทย. ";
+
+        function playVoiceSummary() {
+            if (!('speechSynthesis' in window)) {
+                alert("เบราว์เซอร์ของคุณไม่รองรับการอ่านออกเสียง");
+                return;
+            }
+
+            const btn = document.getElementById('play-voice-btn');
+            const status = document.getElementById('audio-status-text');
+
+            if (isSpeaking) {
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+                btn.innerHTML = '<span>🔊 ฟังเสียงสรุป 60 วินาที</span>';
+                status.textContent = 'หยุดชั่วคราว';
+                return;
+            }
+
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(voiceText);
+            utterance.lang = 'th-TH';
+            utterance.rate = 1.05;
+
+            utterance.onstart = () => {
+                isSpeaking = true;
+                btn.innerHTML = '<span>⏹️ หยุดเสียง</span>';
+                status.textContent = 'กำลังบรรยายเสียง...';
+            };
+
+            utterance.onend = () => {
+                isSpeaking = false;
+                btn.innerHTML = '<span>🔊 ฟังเสียงสรุป 60 วินาที</span>';
+                status.textContent = 'บรรยายจบแล้ว';
+            };
+
+            utterance.onerror = () => {
+                isSpeaking = false;
+                btn.innerHTML = '<span>🔊 ฟังเสียงสรุป 60 วินาที</span>';
+                status.textContent = 'พร้อมบรรยาย';
+            };
+
+            window.speechSynthesis.speak(utterance);
         }
     </script>
 </body>
