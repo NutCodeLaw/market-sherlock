@@ -1,0 +1,63 @@
+name: 🕵️‍♂️ MarketSherlock Daily Intelligence Dispatch
+
+on:
+  schedule:
+    # 00:50 UTC = 07:50 AM Thailand time (ready for 08:00 AM reading)
+    - cron: '50 0 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (no git push)'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  investigate_and_publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🕵️‍♂️ Run MarketSherlock Autonomous Investigation
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TZ: 'Asia/Bangkok'
+        run: |
+          python main.py
+
+      - name: 📤 Commit and push changes
+        if: ${{ inputs.dry_run != 'true' }}
+        run: |
+          git config --global user.name "MarketSherlock-Bot"
+          git config --global user.email "bot@marketsherlock.internal"
+          git add LATEST.md README.md archives/ web/ data/history.json
+          
+          # Only commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            TODAY=$(date +'%Y-%m-%d')
+            git commit -m "feat(briefing): 📰 MarketSherlock Dispatch for ${TODAY} [skip ci]"
+            git push origin main
+          fi
