@@ -113,7 +113,7 @@ def save_all_reports(payload: Dict[str, Any], raw_markdown: str) -> None:
 > **Autonomous Morning Financial Intelligence & Investigative Briefing Engine**  
 > ปฏิบัติการเจาะลึกพลวัตการลงทุนรอบโลกและตลาดไทย ส่งตรงถึงคุณทุกเช้าเวลา 08:00 น.
 
-[![Daily Dispatch](https://github.com/your-username/market-sherlock/actions/workflows/daily_dispatch.yml/badge.svg)](https://github.com/your-username/market-sherlock/actions)
+[![Daily Dispatch](https://github.com/NutCodeLaw/market-sherlock/actions/workflows/daily_dispatch.yml/badge.svg)](https://github.com/NutCodeLaw/market-sherlock/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Powered By: Gemini 3.8 Flash](https://img.shields.io/badge/AI-Gemini%203.8%20Flash-blue)](https://ai.google.dev/)
 [![Live Terminal Reader](https://img.shields.io/badge/Web%20Reader-GitHub%20Pages-success)](./web/index.html)
@@ -137,7 +137,7 @@ def save_all_reports(payload: Dict[str, Any], raw_markdown: str) -> None:
 ## 💻 การติดตั้งและรันในเครื่อง (Local Setup)
 ```bash
 # 1. Clone repository
-git clone https://github.com/your-username/market-sherlock.git
+git clone https://github.com/NutCodeLaw/market-sherlock.git
 cd market-sherlock
 
 # 2. Install dependencies
