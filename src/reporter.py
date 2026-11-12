@@ -5,7 +5,7 @@ import json
 import re
 from typing import Dict, Any
 from pathlib import Path
-from src.config import LATEST_MD_PATH, README_MD_PATH, ARCHIVES_DIR, INDEX_HTML_PATH
+from src.config import LATEST_MD_PATH, README_MD_PATH, ARCHIVES_DIR, INDEX_HTML_PATH, ROOT_INDEX_HTML_PATH
 from src.utils import get_now_bangkok, format_thai_date, get_iso_date
 
 def generate_markdown_report(data: Dict[str, Any]) -> str:
@@ -116,12 +116,12 @@ def save_all_reports(payload: Dict[str, Any], raw_markdown: str) -> None:
 [![Daily Dispatch](https://github.com/NutCodeLaw/market-sherlock/actions/workflows/daily_dispatch.yml/badge.svg)](https://github.com/NutCodeLaw/market-sherlock/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Powered By: Gemini 3.8 Flash](https://img.shields.io/badge/AI-Gemini%203.8%20Flash-blue)](https://ai.google.dev/)
-[![Live Terminal Reader](https://img.shields.io/badge/Web%20Reader-GitHub%20Pages-success)](./web/index.html)
+[![Live Terminal Reader](https://img.shields.io/badge/Web%20Reader-GitHub%20Pages-success)](https://nutcodelaw.github.io/market-sherlock/)
 
 ---
 
 ## 📖 สรุปข่าวล่าสุด (Latest Morning Dispatch)
-👉 **เปิดอ่านรายงานฉบับเต็ม:** [`LATEST.md`](./LATEST.md) หรือเปิด **[Web Terminal Reader](./web/index.html)**
+👉 **เปิดอ่านรายงานฉบับเต็ม:** [`LATEST.md`](./LATEST.md) หรือเปิด **[🌐 Web Terminal Reader](https://nutcodelaw.github.io/market-sherlock/)**
 
 {raw_markdown}
 
@@ -175,4 +175,6 @@ python main.py
                                 f'window.__RAW_MARKDOWN__ = {escaped_md};\n        window.addEventListener(\'DOMContentLoaded\', renderBriefing);')
                                 
         with open(INDEX_HTML_PATH, "w", encoding="utf-8") as f:
+            f.write(html)
+        with open(ROOT_INDEX_HTML_PATH, "w", encoding="utf-8") as f:
             f.write(html)

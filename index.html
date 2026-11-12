@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🕵️‍♂️ MarketSherlock — สรุปข่าวเศรษฐกิจและพลวัตการลงทุน</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --bg-surface: #111827;
+            --bg-card: #182234;
+            --border: #243248;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent-gold: #f59e0b;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --font-display: 'Plus Jakarta Sans', 'Sarabun', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-display);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            padding: 24px 16px;
+        }
+
+        .container {
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+
+        /* Top Header */
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .brand-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(90deg, #f8fafc, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-sub {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .time-badge {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-family: var(--font-mono);
+            font-weight: 600;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            margin-right: 6px;
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+
+        /* Section Headings */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 32px 0 16px 0;
+            color: #ffffff;
+            border-left: 4px solid var(--accent-gold);
+            padding-left: 12px;
+        }
+
+        /* 1. Market Snapshot Grid */
+        .snapshot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .ticker-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .ticker-card:hover {
+            transform: translateY(-2px);
+            border-color: #3b82f6;
+        }
+
+        .ticker-name {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .ticker-price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            margin-bottom: 4px;
+        }
+
+        .ticker-change {
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            font-weight: 600;
+        }
+
+        .up { color: var(--accent-green); }
+        .down { color: var(--accent-red); }
+        .neutral { color: var(--text-muted); }
+
+        /* 2. Main Stories */
+        .story-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .story-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, #3b82f6, #06b6d4);
+        }
+
+        .story-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #f8fafc;
+        }
+
+        .story-body {
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            margin-bottom: 14px;
+        }
+
+        .takeaway-box {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+        }
+
+        .takeaway-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .takeaway-content {
+            font-size: 0.9rem;
+            color: #e2e8f0;
+        }
+
+        .story-footer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .source-pill {
+            background: rgba(255, 255, 255, 0.06);
+            color: #93c5fd;
+            text-decoration: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: background 0.2s;
+        }
+
+        .source-pill:hover {
+            background: rgba(255, 255, 255, 0.12);
+            text-decoration: underline;
+        }
+
+        /* 3. Market Briefs */
+        .briefs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 14px;
+        }
+
+        .brief-item {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .brief-tag {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--accent-gold);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .brief-headline {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+
+        .brief-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* 4. Watchlist & 5. Strategy Compass */
+        .strategy-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .strategy-box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+        }
+
+        .box-heading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .box-green { border-top: 3px solid var(--accent-green); }
+        .box-red { border-top: 3px solid var(--accent-red); }
+        .box-blue { border-top: 3px solid var(--accent-cyan); }
+
+        .strategy-list {
+            list-style: none;
+            font-size: 0.88rem;
+            color: #cbd5e1;
+        }
+
+        .strategy-list li {
+            position: relative;
+            padding-left: 18px;
+            margin-bottom: 8px;
+        }
+
+        .strategy-list li::before {
+            content: "•";
+            position: absolute;
+            left: 4px;
+            color: var(--accent-gold);
+            font-weight: bold;
+        }
+
+        footer {
+            margin-top: 48px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+        /* Utilities */
+        .actions-bar {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+        }
+
+        .btn {
+            background: var(--bg-surface);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--bg-card);
+            border-color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Top Nav & Brand -->
+        <header>
+            <div class="brand">
+                <div class="brand-icon">🕵️‍♂️</div>
+                <div>
+                    <h1 class="brand-title">MarketSherlock</h1>
+                    <div class="brand-sub">สรุปข่าวเศรษฐกิจและพลวัตการลงทุนรอบโลก (08:00 น.)</div>
+                </div>
+            </div>
+            <div class="header-meta">
+                <div class="time-badge">
+                    <span class="status-dot"></span>
+                    <span id="report-date">กำลังโหลด...</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="actions-bar">
+            <button class="btn" onclick="window.print()">🖨️ พิมพ์ / บันทึก PDF</button>
+            <button class="btn" onclick="copyMarkdown()">📋 คัดลอก Markdown</button>
+        </div>
+
+        <!-- 1. Market Snapshot -->
+        <div class="section-header">📊 Market Snapshot (ภาพรวมตัวเลขตลาดสำคัญ)</div>
+        <div class="snapshot-grid" id="snapshot-container">
+            <!-- Dynamic ticker cards inserted here -->
+        </div>
+
+        <!-- 2. Main Stories -->
+        <div class="section-header">🔍 ข่าวหลักและการวิเคราะห์เชิงลึก (Investigative & Main Stories)</div>
+        <div id="main-stories-container">
+            <!-- Dynamic main stories inserted here -->
+        </div>
+
+        <!-- 3. Market Briefs -->
+        <div class="section-header">⚡ สรุปข่าวสั้นรอบตลาด (Market Briefs)</div>
+        <div class="briefs-grid" id="market-briefs-container">
+            <!-- Dynamic briefs inserted here -->
+        </div>
+
+        <!-- 4. Today's Watchlist -->
+        <div class="section-header">📅 วาระเศรษฐกิจต้องจับตาวันนี้ (Today's Watchlist)</div>
+        <div class="strategy-box" style="margin-bottom: 24px;" id="watchlist-container">
+            <!-- Watchlist events inserted here -->
+        </div>
+
+        <!-- 5. Deep Insights & Portfolio Compass -->
+        <div class="section-header">🧭 ข้อมูลเชิงลึก & กลยุทธ์พอร์ตโฟลิโอ (Strategic Portfolio Compass)</div>
+        <div class="strategy-container">
+            <div class="strategy-box box-green">
+                <div class="box-heading" style="color: var(--accent-green);">🟢 กลุ่มที่ได้ประโยชน์ (Beneficiaries)</div>
+                <ul class="strategy-list" id="beneficiaries-list"></ul>
+            </div>
+            <div class="strategy-box box-red">
+                <div class="box-heading" style="color: var(--accent-red);">🔴 กลุ่มที่ต้องระวัง (Risk Watchlist)</div>
+                <ul class="strategy-list" id="risks-list"></ul>
+            </div>
+            <div class="strategy-box box-blue">
+                <div class="box-heading" style="color: var(--accent-cyan);">💡 นัยเชิงกลยุทธ์ (Strategic Takeaways)</div>
+                <ul class="strategy-list" id="strategy-list"></ul>
+            </div>
+        </div>
+
+        <footer>
+            MarketSherlock v1.0 • พัฒนาด้วย Google Gemini 3.8 Flash & Python Autonomous Pipeline • แหล่งข่าว: Bloomberg, Reuters, FT, WSJ, ก.ล.ต., ธปท., ตลาดหลักทรัพย์ฯ, สภาพัฒน์
+        </footer>
+    </div>
+
+    <!-- Embedded Data Payload -->
+    <script id="briefing-data" type="application/json">
+{
+  "date": "2026-11-12",
+  "date_formatted": "12 พฤศจิกายน 2569",
+  "time": "14:44 น.",
+  "snapshot_markdown": "| สินทรัพย์ / ดัชนี | สัญลักษณ์ | ราคาล่าสุด | การเปลี่ยนแปลง | ทิศทาง |
+| :--- | :--- | :---: | :---: | :---: |
+| **SET Index** | `^SET.BK` | 1,497.45 | +0.00 (+0.00%) | ⚪ |
+| **S&P 500** | `^GSPC` | 7,619.38 | +98.45 (+1.31%) | 🟢 |
+| **US 10Y Yield** | `^TNX` | 5.00% | +0.02 (+0.30%) | 🟢 |
+| **Crude Oil (WTI)** | `CL=F` | 86.86 | +0.33 (+0.38%) | 🟢 |
+| **Gold (Spot/Futures)** | `GC=F` | 3,962.40 | -38.10 (-0.95%) | 🔴 |
+| **USD/THB** | `THB=X` | 33.75THB | +0.16 (+0.48%) | 🟢 |",
+  "snapshot_items": [
+    {
+      "name": "SET Index",
+      "symbol": "^SET.BK",
+      "price": 1497.449951171875,
+      "prev_price": 1497.449951171875,
+      "change": 0.0,
+      "percent_change": 0.0,
+      "status": "⚪",
+      "price_display": "1,497.45",
+      "change_display": "+0.00 (+0.00%)"
+    },
+    {
+      "name": "S&P 500",
+      "symbol": "^GSPC",
+      "price": 7619.3798828125,
+      "prev_price": 7520.93017578125,
+      "change": 98.44970703125,
+      "percent_change": 1.3090097199449584,
+      "status": "🟢",
+      "price_display": "7,619.38",
+      "change_display": "+98.45 (+1.31%)"
+    },
+    {
+      "name": "US 10Y Yield",
+      "symbol": "^TNX",
+      "price": 4.998000144958496,
+      "prev_price": 4.982999801635742,
+      "change": 0.015000343322753906,
+      "percent_change": 0.3010303816955768,
+      "status": "🟢",
+      "price_display": "5.00%",
+      "change_display": "+0.02 (+0.30%)"
+    },
+    {
+      "name": "Crude Oil (WTI)",
+      "symbol": "CL=F",
+      "price": 86.86000061035156,
+      "prev_price": 86.52999877929688,
+      "change": 0.3300018310546875,
+      "percent_change": 0.38137274437780716,
+      "status": "🟢",
+      "price_display": "86.86",
+      "change_display": "+0.33 (+0.38%)"
+    },
+    {
+      "name": "Gold (Spot/Futures)",
+      "symbol": "GC=F",
+      "price": 3962.39990234375,
+      "prev_price": 4000.5,
+      "change": -38.10009765625,
+      "percent_change": -0.9523833934820647,
+      "status": "🔴",
+      "price_display": "3,962.40",
+      "change_display": "-38.10 (-0.95%)"
+    },
+    {
+      "name": "USD/THB",
+      "symbol": "THB=X",
+      "price": 33.75,
+      "prev_price": 33.5890007019043,
+      "change": 0.16099929809570312,
+      "percent_change": 0.47932148837811483,
+      "status": "🟢",
+      "price_display": "33.75THB",
+      "change_display": "+0.16 (+0.48%)"
+    }
+  ],
+  "main_stories": [
+    {
+      "title": "เงินเฟ้อสหรัฐฯ ร้อนแรงซ้ำรอย ตลาดแห่ตีราคา Fed จ่อขึ้นดอกเบี้ยเดือนธันวาคม",
+      "summary": "ตัวเลขเงินเฟ้อ CPI เดือนตุลาคมของสหรัฐฯ ออกมาสูงกว่าคาดการณ์อย่างมีนัยสำคัญ ประกอบกับการส่งสัญญาณเชิงเหยี่ยว (Hawkish) ของเจ้าหน้าที่ Fed ส่งผลให้ตลาดปรับมุมมองอย่างฉับพลัน โดยคาดการณ์ว่าธนาคารกลางสหรัฐฯ อาจจำเป็นต้องปรับขึ้นอัตราดอกเบี้ยอีกครั้งในการประชุมเดือนธันวาคมนี้",
+      "takeaway": "ลดความเสี่ยงในสินทรัพย์เติบโตสูง (Growth Stocks) และเน้นถือเงินสดหรือสินทรัพย์ป้องกันความเสี่ยงจากดอกเบี้ยขาขึ้น",
+      "continuity": "พัฒนาการต่อเนื่องจากรายงานเงินเฟ้อร้อนแรงในรอบสัปดาห์ที่เปลี่ยนทิศทางนโยบายดอกเบี้ยอย่างสิ้นเชิง",
+      "source_name": "Wall Street Journal",
+      "source_url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxPc0VSTVFyMVRIR1EtM1J2eWU0MW45b3BmWVMwTWRwbmQzcmhvVlBuTEFQNWowTEI2SUd2cngzbmZ3VXMwYTVxc2NaSTg0WnZ4VndDaHVGNWZGcFcxN1NOUWsyMHd2RTJVNjJqZ2JiQy1XRDNpM2VGRFpiX1RVaTBnM01FSTVLUXJOYkFSRnhKaFBhNzZfUUZsZGJTWlBZbjRxV29UR0k5NVJ5U3ZVdXpYZ2NLeVlKb2ZC?oc=5"
+    },
+    {
+      "title": "บีโอไอผนึก ก.ล.ต. และ ตลท. เปิดเครื่องยนต์ 'BOI to IPO' ดึง New Economy เข้าตลาดทุนไทย",
+      "summary": "ความร่วมมือเชิงโครงสร้างครั้งประวัติศาสตร์ระหว่าง BOI, ตลท. และ ก.ล.ต. เดินหน้าเต็มสูบผ่านโครงการ 'BOI to IPO' เพื่อผลักดันผู้ประกอบการอุตสาหกรรมเป้าหมาย New Economy และบริษัทต่างชาติเข้าจดทะเบียนระดมทุนในตลาดหลักทรัพย์ฯ สร้างมิติใหม่ให้ตลาดหุ้นไทย",
+      "takeaway": "มองหาโอกาสลงทุนในกลุ่มหุ้นนวัตกรรมและเทคโนโลยี (New Economy) ที่เตรียมตบเท้าเข้าตลาดหุ้นไทยผ่านช่องทางพิเศษนี้",
+      "continuity": "ความคืบหน้าต่อเนื่องจากโครงการความร่วมมือเชิงโครงสร้างที่เปิดตัวในสัปดาห์นี้",
+      "source_name": "ตลาดหลักทรัพย์แห่งประเทศไทย",
+      "source_url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxNSi00WGNadndUQUhHU0J3Nmd3Tmp5QkdIOWdVaGQ5QjZJR0pNbVV4ZTBWaXRpSDZzbXFfaHdQMHRiVzI2T3pubnFIX1ppeC15X0ZVTWdHckJsVHlBX2U1cnl0ejc5cnppN1NEU04ySXU4RUpoMUU5UE1BMXVUaEdVdmlpU1FXb3pwR1E?oc=5"
+    },
+    {
+      "title": "พันธบัตรสหรัฐฯ เดือดดาล Yield พุ่งกระูดสุดรอบ 19 เดือน ทองคำร่วงหลุด $4,000",
+      "summary": "อัตราผลตอบแทนพันธบัตรรัฐบาลสหรัฐฯ (US 10Y Yield) พุ่งแตะระดับ 5.00% ทะยานขึ้นรุนแรงที่สุดในรอบ 19 เดือน หลังนักลงทุนแห่เทขายสินทรัพย์ปลอดภัย ท่ามกลางความกังวลเงินเฟ้อและการขึ้นดอกเบี้ย ส่งผลให้ราคาทองคำ Spot ร่วงหลุดระดับ 4,000 ดอลลาร์สหรัฐฯ อย่างรวดเร็ว",
+      "takeaway": "หลีกเลี่ยงการถือครองทองคำและพันธบัตรระยะยาวในช่วงที่ Yield ขาขึ้นกดดันอย่างหนัก",
+      "continuity": "ประเด็นใหม่ต่อเนื่องจากความตื่นตระหนกของตลาดตราสารหนี้ทั่วโลกในสัปดาห์นี้",
+      "source_name": "CNN",
+      "source_url": "https://news.google.com/rss/articles/CBMidEFVX3lxTE90VXBidVIzOGQ1UEpWNEZyYmdEWGs5b1czWmUtOEYxNzhxZEJVODlMVEJsOTZYSHRKWHdjWWFGTzltYWtZaVk3dGhfR0hyaVFuTXk5cEpMWDZZYmsxVG9rVF9ZT3VLYnQ4T2NCQllBVHVmT1lw?oc=5"
+    }
+  ],
+  "market_briefs": [
+    {
+      "#Macro": "เงินเฟ้อพ่นพิษ",
+      "headline": "Wall Street ปิดร่วงระนาว",
+      "text": "ดัชนี S&P 500 และหุ้นกลุ่มเทคโนโลยีเผชิญแรงเทขายหนักจากความกังวลนโยบายการเงินตึงตัวของ Fed"
+    },
+    {
+      "#Policy": "เปิดประตูรับทุนนอก",
+      "headline": "BOI to IPO ปั้นหุ้นนางฟ้าเข้า SET",
+      "text": "ภาครัฐขานรับนโยบายดึงดูดบริษัทต่างชาติและ New Economy เข้าตลาดทุนไทยอย่างเป็นรูปธรรม"
+    }
+  ],
+  "watchlist": [
+    {
+      "time": "ตลอดวัน",
+      "event": "ติดตามทิศทางค่าเงินบาท (USD/THB) หลังร่วงรับแรงกดดันจากดอลลาร์แข็งค่า"
+    },
+    {
+      "time": "ตลอดวัน",
+      "event": "ความเคลื่อนไหวของตลาดตราสารหนี้ไทยตามรอย US 10Y Yield ที่แตะระดับ 5%"
+    }
+  ],
+  "beneficiaries": [
+    "หุ้นกลุ่มธนาคารพาณิชย์ (ได้ประโยชน์จากดอกเบี้ยขาขึ้นและส่วนต่างรายได้ดอกเบี้ยสุทธิ)",
+    "หุ้นกลุ่ม New Economy ที่เตรียมเข้าจดทะเบียนผ่านโครงการ BOI to IPO"
+  ],
+  "risks": [
+    "ทองคำและสินทรัพย์ปลอดภัย (เผชิญแรงกดดันจากการพุ่งขึ้นของ US Bond Yield และ Dollar Index)",
+    "หุ้นกลุ่มเติบโตสูง (Growth & Tech Stocks) ที่แพริ่งมูลค่าตามอัตราคิดลด (Discount Rate) ที่สูงขึ้น"
+  ],
+  "strategies": [
+    "ชะลอการลงทุนในสินทรัพย์เสี่ยงสูงและสินทรัพย์ที่อ่อนไหวต่ออัตราดอกเบี้ย",
+    "เน้นตั้งรับในหุ้นกลุ่ม Value ที่มีกระแสเงินสดแข็งแกร่ง และติดตามหุ้นกลุ่ม New Economy ที่มีปัจจัยพื้นฐานรองรับในตลาดไทย"
+  ]
+}
+    </script>
+
+    <script>
+        function renderBriefing() {
+            try {
+                const raw = document.getElementById('briefing-data').textContent.trim();
+                if (!raw || raw === '__DATA_PLACEHOLDER__') return;
+                const data = JSON.parse(raw);
+                
+                document.getElementById('report-date').textContent = data.date_formatted || data.date;
+                
+                // 1. Tickers
+                const snapEl = document.getElementById('snapshot-container');
+                snapEl.innerHTML = '';
+                (data.snapshot_items || []).forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'ticker-card';
+                    const chgClass = item.percent_change > 0 ? 'up' : (item.percent_change < 0 ? 'down' : 'neutral');
+                    card.innerHTML = `
+                        <div class="ticker-name">${item.name} (${item.symbol})</div>
+                        <div class="ticker-price">${item.price_display}</div>
+                        <div class="ticker-change ${chgClass}">${item.status} ${item.change_display}</div>
+                    `;
+                    snapEl.appendChild(card);
+                });
+
+                // 2. Main Stories
+                const storiesEl = document.getElementById('main-stories-container');
+                storiesEl.innerHTML = '';
+                (data.main_stories || []).forEach(story => {
+                    const div = document.createElement('div');
+                    div.className = 'story-card';
+                    div.innerHTML = `
+                        <h3 class="story-title">${story.title}</h3>
+                        <div class="story-body">${story.summary}</div>
+                        <div class="takeaway-box">
+                            <div class="takeaway-title">🎯 Actionable Takeaways</div>
+                            <div class="takeaway-content">${story.takeaway}</div>
+                        </div>
+                        <div class="story-footer">
+                            <span>ความต่อเนื่อง: <strong>${story.continuity || 'ประเด็นใหม่'}</strong></span>
+                            <a class="source-pill" href="${story.source_url || '#'}" target="_blank">🔗 แหล่งข่าว: ${story.source_name || 'Verified Source'}</a>
+                        </div>
+                    `;
+                    storiesEl.appendChild(div);
+                });
+
+                // 3. Market Briefs
+                const briefsEl = document.getElementById('market-briefs-container');
+                briefsEl.innerHTML = '';
+                (data.market_briefs || []).forEach(b => {
+                    const div = document.createElement('div');
+                    div.className = 'brief-item';
+                    div.innerHTML = `
+                        <span class="brief-tag">${b.tag || '#MARKET'}</span>
+                        <div class="brief-headline">${b.headline}</div>
+                        <div class="brief-text">${b.text}</div>
+                    `;
+                    briefsEl.appendChild(div);
+                });
+
+                // 4. Watchlist
+                const wlEl = document.getElementById('watchlist-container');
+                wlEl.innerHTML = `<ul class="strategy-list">${(data.watchlist || []).map(w => `<li><strong>${w.time || 'วันนี้'}:</strong> ${w.event}</li>`).join('')}</ul>`;
+
+                // 5. Strategy
+                const bList = document.getElementById('beneficiaries-list');
+                bList.innerHTML = (data.beneficiaries || []).map(b => `<li>${b}</li>`).join('');
+                
+                const rList = document.getElementById('risks-list');
+                rList.innerHTML = (data.risks || []).map(r => `<li>${r}</li>`).join('');
+                
+                const sList = document.getElementById('strategy-list');
+                sList.innerHTML = (data.strategies || []).map(s => `<li>${s}</li>`).join('');
+
+            } catch (err) {
+                console.error("Rendering error:", err);
+            }
+        }
+
+        function copyMarkdown() {
+            navigator.clipboard.writeText(window.__RAW_MARKDOWN__ || "Markdown content not loaded");
+            alert("คัดลอกสรุป Markdown เรียบร้อยแล้ว!");
+        }
+
+        window.addEventListener('DOMContentLoaded', renderBriefing);
+    </script>
+</body>
+</html>

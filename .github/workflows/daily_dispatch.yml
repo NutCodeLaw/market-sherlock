@@ -51,7 +51,7 @@ jobs:
         run: |
           git config --global user.name "MarketSherlock-Bot"
           git config --global user.email "bot@marketsherlock.internal"
-          git add LATEST.md README.md archives/ web/ data/history.json
+          git add LATEST.md README.md archives/ web/ index.html data/history.json
           
           # Only commit if there are changes
           if git diff --staged --quiet; then

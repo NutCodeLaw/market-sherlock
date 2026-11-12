@@ -14,6 +14,7 @@ WEB_DIR = ROOT_DIR / "web"
 LATEST_MD_PATH = ROOT_DIR / "LATEST.md"
 README_MD_PATH = ROOT_DIR / "README.md"
 INDEX_HTML_PATH = WEB_DIR / "index.html"
+ROOT_INDEX_HTML_PATH = ROOT_DIR / "index.html"
 HISTORY_FILE = DATA_DIR / "history.json"
 
 # Load environment variables
