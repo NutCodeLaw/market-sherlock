@@ -15,11 +15,13 @@ from src.state_manager import (
 )
 from src.ai_investigator import run_investigation
 from src.reporter import generate_markdown_report, save_all_reports
+from src.notifier import send_telegram_briefing
 
 def main():
     parser = argparse.ArgumentParser(description="MarketSherlock Weekly Intelligence Engine")
     parser.add_argument("--preview", action="store_true", help="Print report to console without saving")
     parser.add_argument("--force", action="store_true", help="Force run even if this week is already reported")
+    parser.add_argument("--telegram", action="store_true", help="Force send Telegram notification when running locally")
     args = parser.parse_args()
 
     now = get_now_bangkok()
@@ -103,8 +105,8 @@ def main():
         ]
         append_weekly_topics(current_week, iso_date, topics_to_save)
         
-        # Telegram dispatch is intentionally disabled per user request
-        # send_telegram_briefing(payload)
+        # Dispatch weekly briefing to dedicated Telegram room (-1003712039650)
+        send_telegram_briefing(payload)
         
         print("\n🎉 จัดทำยุทธศาสตร์ประจำสัปดาห์เสร็จสมบูรณ์เรียบร้อยแล้ว!")
         print("📁 ไฟล์ที่สร้าง/อัปเดต:")

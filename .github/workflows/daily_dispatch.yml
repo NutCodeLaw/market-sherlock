@@ -2,8 +2,8 @@ name: 🕵️‍♂️ MarketSherlock Weekly Intelligence Cockpit
 
 on:
   schedule:
-    # 00:50 UTC = 07:50 AM Thailand Time (Runs Mon-Fri, executes on Monday or next business day if holiday)
-    - cron: '50 0 * * 1-5'
+    # 01:00 UTC = 08:00 AM Bangkok Time (Runs Mon-Fri; executes on Monday 08:00 AM or next business day if holiday)
+    - cron: '0 1 * * 1-5'
   workflow_dispatch:
     inputs:
       force:
@@ -42,6 +42,8 @@ jobs:
       - name: 🕵️‍♂️ Run MarketSherlock Weekly Intelligence
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TZ: 'Asia/Bangkok'
         run: |
           if [ "${{ inputs.force }}" = "true" ]; then

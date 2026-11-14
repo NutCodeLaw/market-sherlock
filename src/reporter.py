@@ -57,7 +57,7 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
     lines.append("")
     lines.append("---")
     lines.append("")
-    lines.append("## 📅 วาระเศรษฐกิจต้องจับตาวันนี้ (Today's Watchlist)")
+    lines.append("## 📅 วาระเศรษฐกิจต้องจับตาในสัปดาห์นี้ (Weekly Watchlist)")
     lines.append("")
     
     for w in data.get("watchlist", []):
@@ -96,11 +96,14 @@ def build_prerendered_html(data: Dict[str, Any], raw_markdown: str) -> str:
     date_display = html.escape(data.get("date_formatted", "") or data.get("date", ""))
     time_display = html.escape(data.get("time", ""))
     
-    # 1. Market Sentiment Score (0 to 100)
+    # 1. Market Sentiment Score (0 to 100 clamped)
     sentiment = data.get("market_sentiment", {})
-    sent_score = int(sentiment.get("score", 50))
-    sent_label = html.escape(sentiment.get("label", "Neutral"))
-    sent_rationale = html.escape(sentiment.get("rationale", "ตลาดอยู่ในช่วงจับตาทิศทางดอกเบี้ยโลกและกระแสเงินทุน"))
+    try:
+        sent_score = max(0, min(100, int(float(sentiment.get("score", 50)))))
+    except (TypeError, ValueError):
+        sent_score = 50
+    sent_label = html.escape(str(sentiment.get("label", "Neutral")))
+    sent_rationale = html.escape(str(sentiment.get("rationale", "ตลาดอยู่ในช่วงจับตาทิศทางดอกเบี้ยโลกและกระแสเงินทุน")))
     
     # Needle degree for SVG speedometer (from -90deg to +90deg)
     # score 0 = -90deg, 50 = 0deg, 100 = 90deg
@@ -206,7 +209,10 @@ def build_prerendered_html(data: Dict[str, Any], raw_markdown: str) -> str:
     
     # 4. Bull vs Bear Tug-of-War
     bb = data.get("bull_bear", {})
-    bull_pct = int(bb.get("bull_pct", 50))
+    try:
+        bull_pct = max(0, min(100, int(float(bb.get("bull_pct", 50)))))
+    except (TypeError, ValueError):
+        bull_pct = 50
     bear_pct = 100 - bull_pct
     bb_summary = html.escape(bb.get("summary", "ตลาดอยู่ในภาวะสมดุลระหว่างแรงซื้อกลุ่มธนาคารและแรงขายหุ้นเทค"))
     
@@ -256,11 +262,13 @@ def build_prerendered_html(data: Dict[str, Any], raw_markdown: str) -> str:
         watchlist_items.append(f"<li>⏱️ <strong>{t}:</strong> {ev}</li>")
     watchlist_rendered = f"<ul class='strategy-list'>{''.join(watchlist_items)}</ul>"
 
-    # Text for Audio Player (Voice narration)
-    speech_text = f"รายงานสรุปข่าวเศรษฐกิจรอบโลก มาร์เก็ตเชอร์ล็อก ประจำวันที่ {date_display} อารมณ์ตลาดวันนี้อยู่ในเกณฑ์ {sent_label} คะแนน {sent_score} เต็ม 100 ดัชนีหลัก "
+    # Text for Audio Player (Voice narration — safe JSON serialization for inline <script>)
+    plain_date = data.get("date_formatted", "") or data.get("date", "")
+    plain_label = str(sentiment.get("label", "Neutral"))
+    speech_text = f"รายงานสรุปยุทธศาสตร์เศรษฐกิจรอบสัปดาห์ มาร์เก็ตเชอร์ล็อก ประจำวันที่ {plain_date} อารมณ์ตลาดรอบสัปดาห์นี้อยู่ในเกณฑ์ {plain_label} คะแนน {sent_score} เต็ม 100 "
     for idx, story in enumerate(data.get("main_stories", [])[:3], 1):
-        speech_text += f"ข่าวที่ {idx}: {story.get('title', '')} จุดสำคัญคือ {story.get('tldr', '')}. "
-    escaped_speech_text = html.escape(speech_text.replace('"', '\\"'))
+        speech_text += f"ประเด็นที่ {idx}: {story.get('title', '')} จุดสำคัญคือ {story.get('tldr', '')}. "
+    voice_text_json = json.dumps(speech_text, ensure_ascii=False).replace("</", r"<\/")
 
     escaped_raw_markdown = html.escape(raw_markdown)
 
@@ -1002,7 +1010,7 @@ def build_prerendered_html(data: Dict[str, Any], raw_markdown: str) -> str:
         </div>
 
         <!-- 4. Sherlock's Asset Compass -->
-        <div class="section-header">🍰 Sherlock’s Daily Asset Compass (สูตรจัดสัดส่วนพอร์ตวันนี้)</div>
+        <div class="section-header">🍰 Sherlock’s Weekly Asset Compass (สูตรจัดสัดส่วนพอร์ตสัปดาห์นี้)</div>
         <div class="alloc-card">
             <div style="font-size: 0.85rem; color: var(--text-muted);">คำแนะนำการกระจายสินทรัพย์เพื่อรับมือพลวัตตลาดปัจจุบัน (Total 100%)</div>
             <div class="alloc-bar">
@@ -1020,9 +1028,9 @@ def build_prerendered_html(data: Dict[str, Any], raw_markdown: str) -> str:
 {briefs_rendered}
             </div>
             <div>
-                <div class="section-header" style="margin-top: 0;">📅 Today's Watchlist & กลยุทธ์</div>
+                <div class="section-header" style="margin-top: 0;">📅 Weekly Watchlist & กลยุทธ์</div>
                 <div class="strategy-box">
-                    <div style="font-weight: 800; color: var(--accent-cyan); margin-bottom: 8px;">วาระสำคัญวันนี้:</div>
+                    <div style="font-weight: 800; color: var(--accent-cyan); margin-bottom: 8px;">วาระสำคัญสัปดาห์นี้:</div>
 {watchlist_rendered}
                     <div style="border-top: 1px solid var(--border); margin: 12px 0;"></div>
                     <div style="font-weight: 800; color: var(--accent-gold); margin-bottom: 6px;">💡 คำแนะนำกลยุทธ์หลัก:</div>
@@ -1073,7 +1081,7 @@ def build_prerendered_html(data: Dict[str, Any], raw_markdown: str) -> str:
 
         // Native Browser Voice Narration
         let isSpeaking = false;
-        const voiceText = "{escaped_speech_text}";
+        const voiceText = {voice_text_json};
 
         function playVoiceSummary() {{
             if (!('speechSynthesis' in window)) {{
@@ -1140,8 +1148,8 @@ def save_all_reports(payload: Dict[str, Any], raw_markdown: str) -> None:
     # 3. Update README.md with Header & Embedded Latest Brief
     readme_content = f"""# 🕵️‍♂️ MarketSherlock Cockpit (มาร์เก็ต เชอร์ล็อก)
 
-> **Autonomous Morning Financial Intelligence & Interactive Cockpit Engine**  
-> ปฏิบัติการเจาะลึกพลวัตการลงทุนรอบโลกและตลาดไทย ส่งตรงถึงคุณทุกเช้าเวลา 08:00 น.
+> **Autonomous Weekly Financial Intelligence & Interactive Cockpit Engine**  
+> ปฏิบัติการเจาะลึกพลวัตการลงทุนรอบโลกและตลาดไทย (Timeframe Week) ส่งตรงถึงคุณทุกเช้าวันจันทร์ เวลา 08:00 น.
 
 [![Daily Dispatch](https://github.com/NutCodeLaw/market-sherlock/actions/workflows/daily_dispatch.yml/badge.svg)](https://github.com/NutCodeLaw/market-sherlock/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -1150,7 +1158,7 @@ def save_all_reports(payload: Dict[str, Any], raw_markdown: str) -> None:
 
 ---
 
-## 📖 สรุปข่าวล่าสุด (Latest Morning Dispatch)
+## 📖 สรุปยุทธศาสตร์รอบสัปดาห์ล่าสุด (Latest Weekly Dispatch)
 👉 **เปิดอ่านรายงานฉบับเต็ม:** [`LATEST.md`](./LATEST.md) หรือเปิด **[🌐 Interactive Web Cockpit](https://nutcodelaw.github.io/market-sherlock/)**
 
 {raw_markdown}
@@ -1158,11 +1166,11 @@ def save_all_reports(payload: Dict[str, Any], raw_markdown: str) -> None:
 ---
 
 ## 🏛️ สถาปัตยกรรมระบบ (Architecture)
-1. **Market Fetcher (`src/market_fetcher.py`)**: ดึงดัชนี SET, S&P 500, US 10Y Yield, Crude Oil, Gold, USD/THB ด้วย `yfinance` แบบ 100% Real-time
+1. **Market Fetcher (`src/market_fetcher.py`)**: ดึงดัชนี SET, S&P 500, US 10Y Yield, Crude Oil, Gold, USD/THB ด้วย `yfinance` รอบ 1W Candlestick
 2. **AI Investigator (`src/ai_investigator.py`)**: ขับเคลื่อนด้วย Google Gemini 3.8 Flash พร้อมวิเคราะห์ Sentiment, Bull/Bear Ratio, Asset Allocation และ Bento Threat Levels
-3. **State Tracker (`src/state_manager.py`)**: จดจำประเด็นข่าวย้อนหลัง 7 วัน ป้องกันการรายงานข่าวซ้ำ และตามติดความคืบหน้าของเรื่องราวอย่างต่อเนื่อง
+3. **State Tracker (`src/state_manager.py`)**: จดจำประเด็นสัปดาห์ก่อนหน้า ป้องกันการรายงานซ้ำ และรองรับ Holiday Rollover อัตโนมัติ
 4. **Interactive Cockpit (`src/reporter.py`)**: สร้างหน้า Web Cockpit สไตล์ Bloomberg/Finviz พร้อมเข็มไมล์ Sentiment, กล่องสี Heatmap, Bento แฟ้มคดี, ชักเย่อกระทิงหมี, และระบบเสียงบรรยายภาษาไทย
-5. **Autonomous Cron (`.github/workflows/daily_dispatch.yml`)**: ทำงานบน GitHub Actions Serverless ฟรี 100% ปลุกตัวเองมารันทุกเช้า 07:50 น. เพื่อให้พร้อมอ่านตอน 08:00 น.
+5. **Autonomous Cron (`.github/workflows/daily_dispatch.yml`)**: ทำงานบน GitHub Actions ฟรี 100% รันตรงเวลา **ทุกวันจันทร์ 08:00 น. (01:00 UTC)** พร้อมส่งสรุป Fast-Bite เข้า Telegram `-1003712039650`
 
 ## 💻 การติดตั้งและรันในเครื่อง (Local Setup)
 ```bash

@@ -12,7 +12,7 @@ def fetch_weekly_ticker(name: str, symbol: str) -> Dict[str, Any]:
         # Fetch 1 month of daily data to compute rolling 5 trading days (1 full week)
         hist = t.history(period="1mo")
         if hist.empty:
-            last_price = float(t.fast_info.get("last_price", 0))
+            last_price = float(t.fast_info.get("last_price") or 0)
             if last_price == 0:
                 return {
                     "name": name,
@@ -27,25 +27,24 @@ def fetch_weekly_ticker(name: str, symbol: str) -> Dict[str, Any]:
                     "change_display": "N/A",
                     "range_display": "N/A"
                 }
-            prev_week_price = float(t.fast_info.get("previous_close", last_price))
-            closes = [last_price]
-            highs = [last_price]
-            lows = [prev_week_price]
+            prev_week_price = float(t.fast_info.get("previous_close") or last_price)
+            week_high = max(last_price, prev_week_price)
+            week_low = min(last_price, prev_week_price)
         else:
             closes = hist["Close"].dropna()
             highs = hist["High"].dropna()
             lows = hist["Low"].dropna()
-        
-        if len(closes) < 2:
-            last_price = float(t.fast_info.get("last_price", closes.iloc[-1] if not closes.empty else 0))
-            prev_week_price = float(t.fast_info.get("previous_close", last_price))
-            week_high = last_price
-            week_low = prev_week_price
-        else:
-            last_price = float(closes.iloc[-1])
-            prev_week_price = float(closes.iloc[-6]) if len(closes) >= 6 else float(closes.iloc[0])
-            week_high = float(highs.tail(5).max())
-            week_low = float(lows.tail(5).min())
+            if len(closes) < 2:
+                fallback_close = float(closes.iloc[-1]) if not closes.empty else 0.0
+                last_price = float(t.fast_info.get("last_price") or fallback_close)
+                prev_week_price = float(t.fast_info.get("previous_close") or last_price)
+                week_high = max(last_price, prev_week_price)
+                week_low = min(last_price, prev_week_price)
+            else:
+                last_price = float(closes.iloc[-1])
+                prev_week_price = float(closes.iloc[-6]) if len(closes) >= 6 else float(closes.iloc[0])
+                week_high = float(highs.tail(5).max())
+                week_low = float(lows.tail(5).min())
             
         change_1w = last_price - prev_week_price
         pct_change_1w = (change_1w / prev_week_price * 100) if prev_week_price != 0 else 0.0

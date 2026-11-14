@@ -1,7 +1,8 @@
 """
-Telegram Notifier Module - Compact Executive Morning Fast-Bite (Guaranteed Safe Length)
+Telegram Notifier Module - Weekly Executive Fast-Bite (Guaranteed Safe Length & CI Guard)
 """
 import os
+import sys
 import json
 import html
 import urllib.request
@@ -20,9 +21,15 @@ def truncate_text(text: str, max_len: int) -> str:
 
 def send_telegram_briefing(payload: Dict[str, Any]) -> bool:
     """
-    Send an ultra-compact, punchy morning summary to Telegram.
-    Optimized for quick 15-second scanning on mobile with guaranteed safe length.
+    Send an ultra-compact, punchy weekly summary to Telegram every Monday at 08:00 AM BKK.
+    Guarded so local runs do not accidentally broadcast unless --telegram or FORCE_TELEGRAM is set.
     """
+    is_ci = os.environ.get("GITHUB_ACTIONS") == "true"
+    force_tg = os.environ.get("FORCE_TELEGRAM", "").lower() in ["true", "1", "yes"] or "--telegram" in sys.argv
+    if not is_ci and not force_tg:
+        print("[Notifier] Local environment detected. Telegram dispatch paused (will auto-send in GitHub Actions every Monday 08:00 AM BKK).")
+        return False
+
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
     
@@ -80,25 +87,29 @@ def send_telegram_briefing(payload: Dict[str, Any]) -> bool:
     risks = html.escape(truncate_text(", ".join(raw_r[:2]), 85)) if raw_r else "-"
     strategy = html.escape(truncate_text(raw_s[0], 110)) if raw_s else "เน้นบริหารความเสี่ยงเชิงรุก"
 
-    # Assemble compact message
+    # Assemble compact weekly message
+    week_id = html.escape(payload.get("week_id", ""))
+    week_tag = f" • {week_id}" if week_id else ""
     message = (
-        f"🕵️‍♂️ <b>MarketSherlock (08:00 น.)</b>\n"
-        f"📅 <i>{date_str} • {time_str}</i>\n\n"
-        f"📊 <b>Market Snapshot:</b>\n"
+        f"🕵️‍♂️ <b>MarketSherlock Weekly Strategy (จันทร์ 08:00 น.)</b>\n"
+        f"📅 <i>{date_str}{week_tag} • {time_str}</i>\n\n"
+        f"📊 <b>1W Market Snapshot:</b>\n"
         f"{snapshot_text}\n\n"
-        f"🔍 <b>3 ประเด็นสำคัญเช้านี้:</b>\n"
+        f"🔍 <b>3 มหาประเด็นชี้ขาดรอบสัปดาห์:</b>\n"
         f"{stories_text}\n\n"
-        f"🧭 <b>กลยุทธ์พอร์ตโฟลิโอ:</b>\n"
+        f"🧭 <b>กลยุทธ์พอร์ตโฟลิโอประจำสัปดาห์:</b>\n"
         f"🟢 <b>บวก:</b> {beneficiaries}\n"
         f"🔴 <b>ระวัง:</b> {risks}\n"
         f"💡 <b>กลยุทธ์:</b> {strategy}\n\n"
-        f"👉 <b>เปิดอ่านรายงานฉบับเต็ม + ชาร์ตบทวิเคราะห์:</b>\n"
+        f"👉 <b>เปิดอ่านรายงานฉบับเต็ม + Weekly Cockpit:</b>\n"
         f"🔗 <a href='https://nutcodelaw.github.io/market-sherlock/'>https://nutcodelaw.github.io/market-sherlock/</a>"
     )
     
-    # Enforce safe character limit guard
+    # Enforce safe character limit guard cleanly at line boundary to avoid breaking HTML tags
     if len(message) > TELEGRAM_MAX_CHARS:
-        message = message[:TELEGRAM_MAX_CHARS - 100] + "\n\n...(อ่านต่อฉบับเต็มบนเว็บ)"
+        footer = "\n\n👉 <a href='https://nutcodelaw.github.io/market-sherlock/'>เปิดอ่านฉบับเต็มบนเว็บ</a>"
+        cutoff = message.rfind("\n", 0, TELEGRAM_MAX_CHARS - len(footer) - 20)
+        message = (message[:cutoff] if cutoff > 0 else message[:TELEGRAM_MAX_CHARS - len(footer) - 20]) + footer
         
     print(f"[Notifier] Message length: {len(message)} / 4096 characters (Safe & Compact)")
     
