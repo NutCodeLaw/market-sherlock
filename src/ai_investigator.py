@@ -6,6 +6,7 @@ import json
 import re
 from typing import Dict, Any, List
 from google import genai
+from google.genai import types
 from src.config import GEMINI_MODELS, TRUSTED_SOURCES
 from src.utils import get_now_bangkok, format_thai_date
 
@@ -131,10 +132,30 @@ def run_investigation(
     for model_name in GEMINI_MODELS:
         try:
             print(f"[AIInvestigator] Querying Gemini model: {model_name}...")
-            response = client.models.generate_content(
-                model=model_name,
-                contents=prompt
-            )
+            cfg_kwargs: Dict[str, Any] = {
+                "response_mime_type": "application/json",
+                "temperature": 0.4,
+            }
+            if "lite" not in model_name:
+                cfg_kwargs["thinking_config"] = types.ThinkingConfig(thinking_level="LOW")
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(**cfg_kwargs),
+                )
+            except Exception:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                )
+            um = getattr(response, "usage_metadata", None)
+            if um:
+                print(
+                    f"[AIInvestigator] Tokens -> prompt={getattr(um, 'prompt_token_count', 0)} "
+                    f"out={getattr(um, 'candidates_token_count', 0)} "
+                    f"think={getattr(um, 'thoughts_token_count', 0) or 0}"
+                )
             raw_text = response.text
             parsed_data = extract_json_from_response(raw_text)
             print(f"[AIInvestigator] Successfully generated analysis using {model_name}")

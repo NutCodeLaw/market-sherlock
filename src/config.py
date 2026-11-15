@@ -23,11 +23,11 @@ load_dotenv(ROOT_DIR / ".env")
 # API Keys
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
-# AI Models (Primary and Fallbacks)
+# AI Models (Cost-optimized primary + active non-deprecated GA fallbacks)
 GEMINI_MODELS = [
-    "gemini-3.8-flash",
     "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite",
+    "gemini-3.8-flash",
+    "gemini-3.6-flash",
     "gemini-flash-latest"
 ]
 

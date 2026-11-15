@@ -57,7 +57,7 @@ def main():
     history_context = get_recent_history_context(days=14)
     
     # 4. Run AI Investigation
-    print("\n[4/5] 🔬 กำลังวิเคราะห์ยุทธศาสตร์ Timeframe Week ด้วย Google Gemini 3.8 Flash...")
+    print("\n[4/5] 🔬 กำลังวิเคราะห์ยุทธศาสตร์ Timeframe Week ด้วย Google Gemini...")
     try:
         analysis_data = run_investigation(
             market_snapshot_text=market_data["markdown_table"],

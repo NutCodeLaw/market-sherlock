@@ -1040,7 +1040,7 @@ def build_prerendered_html(data: Dict[str, Any], raw_markdown: str) -> str:
         </div>
 
         <footer>
-            MarketSherlock Cockpit v2.0 • ขับเคลื่อนด้วย Google Gemini 3.8 Flash VIP & Python Autonomous Pipeline • แหล่งข่าว: Bloomberg, Reuters, FT, WSJ, ก.ล.ต., ธปท., ตลาดหลักทรัพย์ฯ, สภาพัฒน์
+            MarketSherlock Cockpit v2.0 • ขับเคลื่อนด้วย Google Gemini 3.5 Flash-Lite & Python Autonomous Pipeline • แหล่งข่าว: Bloomberg, Reuters, FT, WSJ, ก.ล.ต., ธปท., ตลาดหลักทรัพย์ฯ, สภาพัฒน์
         </footer>
     </div>
 
@@ -1153,7 +1153,7 @@ def save_all_reports(payload: Dict[str, Any], raw_markdown: str) -> None:
 
 [![Daily Dispatch](https://github.com/NutCodeLaw/market-sherlock/actions/workflows/daily_dispatch.yml/badge.svg)](https://github.com/NutCodeLaw/market-sherlock/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Powered By: Gemini 3.8 Flash](https://img.shields.io/badge/AI-Gemini%203.8%20Flash-blue)](https://ai.google.dev/)
+[![Powered By: Gemini 3.5 Flash-Lite](https://img.shields.io/badge/AI-Gemini%203.5%20Flash--Lite-blue)](https://ai.google.dev/)
 [![Live Terminal Reader](https://img.shields.io/badge/Web%20Cockpit-GitHub%20Pages-success)](https://nutcodelaw.github.io/market-sherlock/)
 
 ---
@@ -1167,7 +1167,7 @@ def save_all_reports(payload: Dict[str, Any], raw_markdown: str) -> None:
 
 ## 🏛️ สถาปัตยกรรมระบบ (Architecture)
 1. **Market Fetcher (`src/market_fetcher.py`)**: ดึงดัชนี SET, S&P 500, US 10Y Yield, Crude Oil, Gold, USD/THB ด้วย `yfinance` รอบ 1W Candlestick
-2. **AI Investigator (`src/ai_investigator.py`)**: ขับเคลื่อนด้วย Google Gemini 3.8 Flash พร้อมวิเคราะห์ Sentiment, Bull/Bear Ratio, Asset Allocation และ Bento Threat Levels
+2. **AI Investigator (`src/ai_investigator.py`)**: ขับเคลื่อนด้วย Google Gemini 3.5 Flash-Lite (fallback 3.8/3.6 Flash) พร้อมวิเคราะห์ Sentiment, Bull/Bear Ratio, Asset Allocation และ Bento Threat Levels
 3. **State Tracker (`src/state_manager.py`)**: จดจำประเด็นสัปดาห์ก่อนหน้า ป้องกันการรายงานซ้ำ และรองรับ Holiday Rollover อัตโนมัติ
 4. **Interactive Cockpit (`src/reporter.py`)**: สร้างหน้า Web Cockpit สไตล์ Bloomberg/Finviz พร้อมเข็มไมล์ Sentiment, กล่องสี Heatmap, Bento แฟ้มคดี, ชักเย่อกระทิงหมี, และระบบเสียงบรรยายภาษาไทย
 5. **Autonomous Cron (`.github/workflows/daily_dispatch.yml`)**: ทำงานบน GitHub Actions ฟรี 100% รันตรงเวลา **ทุกวันจันทร์ 08:00 น. (01:00 UTC)** พร้อมส่งสรุป Fast-Bite เข้า Telegram `-1003712039650`
