@@ -1095,7 +1095,7 @@ def build_prerendered_html(data: Dict[str, Any], raw_markdown: str) -> str:
             if (isSpeaking) {{
                 window.speechSynthesis.cancel();
                 isSpeaking = false;
-                btn.innerHTML = '<span>🔊 ฟังเสียงสรุป 60 วินาที</span>';
+                btn.innerHTML = '<span>🔊 ฟังเสียงวิเคราะห์สัปดาห์นี้ 60 วินาที</span>';
                 status.textContent = 'หยุดชั่วคราว';
                 return;
             }}
@@ -1113,13 +1113,13 @@ def build_prerendered_html(data: Dict[str, Any], raw_markdown: str) -> str:
 
             utterance.onend = () => {{
                 isSpeaking = false;
-                btn.innerHTML = '<span>🔊 ฟังเสียงสรุป 60 วินาที</span>';
+                btn.innerHTML = '<span>🔊 ฟังเสียงวิเคราะห์สัปดาห์นี้ 60 วินาที</span>';
                 status.textContent = 'บรรยายจบแล้ว';
             }};
 
             utterance.onerror = () => {{
                 isSpeaking = false;
-                btn.innerHTML = '<span>🔊 ฟังเสียงสรุป 60 วินาที</span>';
+                btn.innerHTML = '<span>🔊 ฟังเสียงวิเคราะห์สัปดาห์นี้ 60 วินาที</span>';
                 status.textContent = 'พร้อมบรรยาย';
             }};
 
@@ -1151,7 +1151,7 @@ def save_all_reports(payload: Dict[str, Any], raw_markdown: str) -> None:
 > **Autonomous Weekly Financial Intelligence & Interactive Cockpit Engine**  
 > ปฏิบัติการเจาะลึกพลวัตการลงทุนรอบโลกและตลาดไทย (Timeframe Week) ส่งตรงถึงคุณทุกเช้าวันจันทร์ เวลา 08:00 น.
 
-[![Daily Dispatch](https://github.com/NutCodeLaw/market-sherlock/actions/workflows/daily_dispatch.yml/badge.svg)](https://github.com/NutCodeLaw/market-sherlock/actions)
+[![Weekly Dispatch](https://github.com/NutCodeLaw/market-sherlock/actions/workflows/daily_dispatch.yml/badge.svg)](https://github.com/NutCodeLaw/market-sherlock/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Powered By: Gemini 3.5 Flash-Lite](https://img.shields.io/badge/AI-Gemini%203.5%20Flash--Lite-blue)](https://ai.google.dev/)
 [![Live Terminal Reader](https://img.shields.io/badge/Web%20Cockpit-GitHub%20Pages-success)](https://nutcodelaw.github.io/market-sherlock/)
@@ -1168,7 +1168,7 @@ def save_all_reports(payload: Dict[str, Any], raw_markdown: str) -> None:
 ## 🏛️ สถาปัตยกรรมระบบ (Architecture)
 1. **Market Fetcher (`src/market_fetcher.py`)**: ดึงดัชนี SET, S&P 500, US 10Y Yield, Crude Oil, Gold, USD/THB ด้วย `yfinance` รอบ 1W Candlestick
 2. **AI Investigator (`src/ai_investigator.py`)**: ขับเคลื่อนด้วย Google Gemini 3.5 Flash-Lite (fallback 3.8/3.6 Flash) พร้อมวิเคราะห์ Sentiment, Bull/Bear Ratio, Asset Allocation และ Bento Threat Levels
-3. **State Tracker (`src/state_manager.py`)**: จดจำประเด็นสัปดาห์ก่อนหน้า ป้องกันการรายงานซ้ำ และรองรับ Holiday Rollover อัตโนมัติ
+3. **State & Holiday Guard (`src/state_manager.py`, `src/holiday_guard.py`)**: จดจำประเด็นสัปดาห์ก่อนหน้า ป้องกันการรายงานซ้ำ และตรวจสอบวันหยุดตลาดหลักทรัพย์ฯ (SET) เพื่อเลื่อนรันเป็นวันเปิดตลาดถัดไปอัตโนมัติ (Holiday Rollover)
 4. **Interactive Cockpit (`src/reporter.py`)**: สร้างหน้า Web Cockpit สไตล์ Bloomberg/Finviz พร้อมเข็มไมล์ Sentiment, กล่องสี Heatmap, Bento แฟ้มคดี, ชักเย่อกระทิงหมี, และระบบเสียงบรรยายภาษาไทย
 5. **Autonomous Cron (`.github/workflows/daily_dispatch.yml`)**: ทำงานบน GitHub Actions ฟรี 100% รันตรงเวลา **ทุกวันจันทร์ 08:00 น. (01:00 UTC)** พร้อมส่งสรุป Fast-Bite เข้า Telegram `-1003712039650`
 

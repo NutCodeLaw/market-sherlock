@@ -13,6 +13,7 @@ from src.state_manager import (
     is_current_week_already_reported,
     append_weekly_topics
 )
+from src.holiday_guard import get_set_non_trading_reason, get_next_set_trading_day
 from src.ai_investigator import run_investigation
 from src.reporter import generate_markdown_report, save_all_reports
 from src.notifier import send_telegram_briefing
@@ -38,8 +39,18 @@ def main():
     # 0. Check Weekly Schedule Guard
     if not args.force and is_current_week_already_reported():
         print(f"\n[Scheduler] 🛡️ สัปดาห์ {current_week} ได้รับการวิเคราะห์เรียบร้อยแล้ว")
-        print(f"   -> ระบบจะตื่นมาวิเคราะห์ใหม่อีกครั้งในวันจันทร์ถัดไป เวลา 08:00 น.")
+        print(f"   -> ระบบจะตื่นมาวิเคราะห์ใหม่อีกครั้งในวันจันทร์ถัดไป เวลา 08:00 น. (หรือวันเปิดตลาดถัดไปหากติดวันหยุด)")
         print(f"   (หากต้องการรันซ้ำเพื่อทดสอบ ให้ใช้คำสั่ง: python main.py --force)")
+        sys.exit(0)
+
+    # 0.5 Check SET Market Holiday Rollover Guard
+    holiday_reason = get_set_non_trading_reason(now)
+    if not args.force and holiday_reason:
+        next_trading_day = get_next_set_trading_day(now)
+        next_trading_thai = format_thai_date(next_trading_day)
+        print(f"\n[Holiday Guard] 🏖️ ตลาดหลักทรัพย์ฯ (SET) ปิดทำการวันนี้: {holiday_reason}")
+        print(f"   -> เลื่อนการวิเคราะห์และส่งรายงานไปเป็นวันเปิดตลาดถัดไป: {next_trading_thai} ({next_trading_day.strftime('%Y-%m-%d')}) เวลา 08:00 น.")
+        print(f"   (หากต้องการบังคับรันในวันหยุด ให้ใช้คำสั่ง: python main.py --force)")
         sys.exit(0)
 
     # 1. Fetch Weekly Market Snapshot (1W Candlestick & Weekly Range)
